@@ -1,0 +1,136 @@
+\documentclass[a4paper,10pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\selectlanguage{spanish}
+
+
+% Title Page
+\title{Reconocimiento de imágenes utilizando GPUs, aplicacion a fútbol de robots}
+\author{Ignacio Eguinoa \\
+\small Facultad de Informática, UNLP}
+
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+
+En este trabajo se desarrollan conceptos relacionados con la vision por computadoras utilizando unidades de procesamiento gráfico(GPUs).
+Se incluye una descripción de la libreria OpenCV, incluyendo el módulo que implementa aceleración mediante GPUs.
+Además, se realiza una desarrollo práctico que consiste en reimplementar una libreria para el procesamiento de imágenes provenientes de fúbol de robots. 
+Se plantean variaciones en esta libreria que aceleran distintos pasos del procesamiento de imagenes utlizando una GPU. 
+Las distintas variantes son evaluadas utilizando un sistema de pruebas y los resultados analizados en base a las caracterísicas de la arquitectura.
+
+
+
+\end{abstract}
+
+
+\tableofcontents
+
+\chapter{Introduccion}
+
+\section{Estructura del trabajo}
+En lo que resta de este primer capitulo se realiza una introducción a la arquitectura GPU. 
+El objetivo es dar una idea general de las caracterísicas que posee y las posiblidades que ofrece tanto para procesamiento de gráficos como para cómputo de propósito general
+
+En el capitulo 2 se describe de forma detallada la libreria OpenCV, principalmente los módulos y funciones que se utilizarán luego en el desarrollo. 
+
+El capitulo 3 contiene el desarrollo experimental del trabajo. En primer lugar se describe el contexto de la aplicación y la implementacion existente para el procesamiento de imágenes de fútbol robot(libreria bottracker).
+Luego se plantean modificaciones sobre esta librería, utilizando el módulo de GPU provisto por OpenCV. Se hacen evaluaciones de las distintas modificaciones y se analizan los resultados basandose en los conceptos explicados en los capitulos previos.
+
+\section{La arquitectura GPU}
+
+\chapter{Libreria OpenCV}
+
+La libreria OpenCV (Open Source Computer Vision Library: http://opencv.org) reune una gran cantidad de algoritmos asociados a la vision por computadoras. 
+Es una libreria open-source que se distribuye bajo una licencia BSD.  is an open-source BSD-licensed library that includes several hundreds of computer vision algorithms. 
+
+La librería esta compuesta por distintos modulos que proveen funcionalidades independientes entre si. Algunos modulos comunes son:
+\begin{description}
+ \item[core:] Define funciones básicas utilizadas por los demás módulos y una estructura de datos que se utiliza para almacenamiento de imágenes(detallada mas adelante)  
+ \item[imgproc:] contiene algoritmos para aplicar a imagenes (filtros, transformaciones, conversiones de colores, etc)
+ \item[video:] incluye algoritmos para estimar movimientos, seguimiento de objetos y para sustraer el fondo.
+ \item[highgui:] interface para captura de video.
+\end{description}
+
+%  describir muy brevemente un par de módulos SIN HABLAR DEL MODULO DE GPU
+% imgproc - an image processing module that includes linear and non-linear image filtering, geometrical image transformations (resize, affine and perspective warping, generic table-based remapping), color space conversion, histograms, and so on.
+% video - a video analysis module that includes motion estimation, background subtraction, and object tracking algorithms.
+% calib3d - basic multiple-view geometry algorithms, single and stereo camera calibration, object pose estimation, stereo correspondence algorithms, and elements of 3D reconstruction.
+% features2d - salient feature detectors, descriptors, and descriptor matchers.
+% objdetect - detection of objects and instances of the predefined classes (for example, faces, eyes, mugs, people, cars, and so on).
+% highgui - an easy-to-use interface to video capturing, image and video codecs, as well as simple UI capabilities.
+
+
+El modulo core es el más importante por la utilidad de ...
+% DENTRO DEL MODULO CORE TENGO QUE EXPLICAR LA INTERFACE Mat
+La principal función de la librería OpenCV es procesar imágenes, las cuales en cualquier sistema de cómputo se encuentran almacenadas como matrices numéricas. 
+El módulo core contine una interface propia que es utilizada para el manejo de imagenes (entrada y salida) en todas las funciones de la libreria. 
+Presenta una forma simple y segura de manejar este tipo de información y es, por lo tanto, una de las partes centrales de OpenCV.
+
+Inicialmente, OpenCV fue implementado usando el lenguaje C y se usaban estructuras de memoria propias del lenguaje para manejar las imágenes. 
+El problema de esto es que todo el proceso de alocar y desalocalr el espacio correspondiente se debe hacer de forma manual y depende de quien está utilizando la librería. 
+A partir de la version 2.0 de OpenCV, el código se extendió usando el lenguaje C++ (aprovechando la compatibilidad entre ambos lenguajes) y en este proceso se introdujo una interface llamada Mat que apunta a automatizar todo el manejo de memoria. 
+De esta forma, los programas que utilizaban la librería OpenCV se hacen mas simples de desarrollar y manejar, incluso para programas de gran tamaño.
+La mayoria de las funciones de OpenCV realizan la alocacion de memoria para el output automáticamente. Además, si el input consiste en un objeto Mat ya instanciado entonces el espacio de memoria de este es reutilizado
+
+ While doing this is still a possibility, most of the OpenCV functions will allocate its output data automatically. As a nice bonus if you pass on an already existing Mat object, which has already allocated the required space for the matrix, this will be reused. In other words we use at all times only as much memory as we need to perform the task.
+Mat is basically a class with two data parts: the matrix header (containing information such as the size of the matrix, the method used for storing, at which address is the matrix stored, and so on) and a pointer to the matrix containing the pixel values (taking any dimensionality depending on the method chosen for storing) . The matrix header size is constant, however the size of the matrix itself may vary from image to image and usually is larger by orders of magnitude.
+
+
+
+
+
+
+
+% AL FINAL DE LA EXPLICACION GENERAL ARRANCO CON LA EXPLICACION DEL MODULO GPU
+
+Dada la expansion en el uso de las arquitecturas GPU, se comenzó a implementar un modulo adicional que contiene optimizaciones realizadas sobre GPU.
+El modulo fue lanzado en el 2011, contiene algunos algoritmos que ya estan implementadas en diversos modulos de OpenCV y que fueron reimplementados con el fin de obtener una aceleracion extra mediante esta arquitectura.
+
+
+El manejo de estructuras de datos es importante cuando interviene codigo sobre la gpu ya que la transferfencia es una parte relevante. 
+
+Por su parte, el modulo gpu define la siguiente clase:
+
+class gpu::GpuMat
+Base storage class for GPU memory with reference counting. Its interface matches the Mat interface with the following limitations:
+no arbitrary dimensions support (only 2D)
+no functions that return references to their data (because references on GPU are not valid for CPU)
+no expression templates technique support
+
+All GPU functions receive GpuMat as input and output arguments. This allows to invoke several GPU algorithms without downloading data. GPU module API interface is also kept similar with CPU interface where possible. So developers who are familiar with Opencv on CPU could start using GPU straightaway.
+
+
+
+
+
+% LINEA PARA CERRAR LA SECCION
+
+Como se dijo en el capitulo previo, la funcion inicial de la gpu era renderizar imagenes a partir de escenas. Con el tiempo la generalizacion en las aplicaciones llevo a que se implementen funciones totalmente distintas. 
+Por ej. mediante el modulo de gpu de la libreria OpenCV se estan realizando la funcion opuesta, que es entender las escenas a partir de imagenes. ((ver filmina 11 de la presentacion ))
+
+
+
+
+\chapter{Trabajo experimental}
+\section{Futbol robot}
+% Aca explico el problema en si
+\section{Implementacion existente}
+
+\subsection{La libreria bottracker}
+% Aca explico el codigo de lo que esta implementado, basicamente los pasos
+
+\subsection{Programa cliente}
+% Aca explico el programa que se usa como prueba
+
+\section{Implementaciones sobre GPU}
+% Aca explico todos los pasos de bottracker que pueden ser ejecutados sobre gpu porque estan implementados en el modulo OpenCV GPUs
+
+\subsection{Resultados}
+
+\chapter{Conclusiones y trabajo futuro}
+
+\end{document}          
