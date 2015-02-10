@@ -6,9 +6,12 @@
 \contentsline {chapter}{\numberline {2}Libreria OpenCV}{3}
 \contentsline {chapter}{\numberline {3}Trabajo experimental}{5}
 \contentsline {section}{\numberline {3.1}Futbol robot}{5}
-\contentsline {section}{\numberline {3.2}Implementacion existente}{5}
-\contentsline {subsection}{\numberline {3.2.1}La libreria bottracker}{5}
-\contentsline {subsection}{\numberline {3.2.2}Programa cliente}{5}
-\contentsline {section}{\numberline {3.3}Implementaciones sobre GPU}{5}
-\contentsline {subsection}{\numberline {3.3.1}Resultados}{5}
-\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{6}
+\contentsline {section}{\numberline {3.2}Detecci\IeC {\'o}n en tiempo real}{5}
+\contentsline {section}{\numberline {3.3}Implementacion existente}{6}
+\contentsline {subsection}{\numberline {3.3.1}La libreria bottracker}{6}
+\contentsline {section}{\numberline {3.4}Implementaciones sobre GPU}{6}
+\contentsline {subsection}{\numberline {3.4.1}Algoritmos}{7}
+\contentsline {subsection}{\numberline {3.4.2}Sistema de pruebas}{7}
+\contentsline {subsection}{\numberline {3.4.3}Resultados}{7}
+\contentsline {subsection}{\numberline {3.4.4}Hardware utilizado}{7}
+\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{8}

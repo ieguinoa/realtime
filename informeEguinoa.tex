@@ -1,8 +1,10 @@
 \documentclass[a4paper,10pt]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
+\usepackage{url}
+\usepackage[numbers]{natbib}
+% \usepackage{biblatex}
 \selectlanguage{spanish}
-
 
 % Title Page
 \title{Reconocimiento de imágenes utilizando GPUs, aplicacion a fútbol de robots}
@@ -44,7 +46,7 @@ Luego se plantean modificaciones sobre esta librería, utilizando el módulo de 
 
 \chapter{Libreria OpenCV}
 
-La libreria OpenCV (Open Source Computer Vision Library: http://opencv.org) reune una gran cantidad de algoritmos asociados a la vision por computadoras. 
+La libreria OpenCV \footnote{Open Source Computer Vision Library \url{http://opencv.org}} reune una gran cantidad de algoritmos asociados a la vision por computadoras. 
 Es una libreria open-source que se distribuye bajo una licencia BSD.  is an open-source BSD-licensed library that includes several hundreds of computer vision algorithms. 
 
 La librería esta compuesta por distintos modulos que proveen funcionalidades independientes entre si. Algunos modulos comunes son:
@@ -74,10 +76,11 @@ Inicialmente, OpenCV fue implementado usando el lenguaje C y se usaban estructur
 El problema de esto es que todo el proceso de alocar y desalocalr el espacio correspondiente se debe hacer de forma manual y depende de quien está utilizando la librería. 
 A partir de la version 2.0 de OpenCV, el código se extendió usando el lenguaje C++ (aprovechando la compatibilidad entre ambos lenguajes) y en este proceso se introdujo una interface llamada Mat que apunta a automatizar todo el manejo de memoria. 
 De esta forma, los programas que utilizaban la librería OpenCV se hacen mas simples de desarrollar y manejar, incluso para programas de gran tamaño.
-La mayoria de las funciones de OpenCV realizan la alocacion de memoria para el output automáticamente. Además, si el input consiste en un objeto Mat ya instanciado entonces el espacio de memoria de este es reutilizado
+La mayoria de las funciones de OpenCV realizan la alocacion de memoria para el output automáticamente. 
+Además, si el input consiste en un objeto Mat ya instanciado entonces el espacio de memoria de este es reutilizado
 
- While doing this is still a possibility, most of the OpenCV functions will allocate its output data automatically. As a nice bonus if you pass on an already existing Mat object, which has already allocated the required space for the matrix, this will be reused. In other words we use at all times only as much memory as we need to perform the task.
-Mat is basically a class with two data parts: the matrix header (containing information such as the size of the matrix, the method used for storing, at which address is the matrix stored, and so on) and a pointer to the matrix containing the pixel values (taking any dimensionality depending on the method chosen for storing) . The matrix header size is constant, however the size of the matrix itself may vary from image to image and usually is larger by orders of magnitude.
+Mat es basicamente una clase con dos partes de datos: el encabezado de la matriz(contiene informacion tal como el tamaño de la matriz, el metodo usado para almacenarla, la direccion de memoria, etc) y un puntero a la matriz conteniendo los valores de los pixels (que puede tomar cualquier dimension, dependiendo del metodo usado para almacenar).
+El tamaño del header de la matriz es constante pero el tamaño de la matriz en si puede variar de imagen a imagen.
 
 
 
@@ -109,7 +112,8 @@ All GPU functions receive GpuMat as input and output arguments. This allows to i
 
 % LINEA PARA CERRAR LA SECCION
 
-Como se dijo en el capitulo previo, la funcion inicial de la gpu era renderizar imagenes a partir de escenas. Con el tiempo la generalizacion en las aplicaciones llevo a que se implementen funciones totalmente distintas. 
+Como se dijo en el capitulo previo, la funcion inicial de la gpu era renderizar imagenes a partir de escenas. 
+Con el tiempo la generalizacion en las aplicaciones llevo a que se implementen funciones totalmente distintas. 
 Por ej. mediante el modulo de gpu de la libreria OpenCV se estan realizando la funcion opuesta, que es entender las escenas a partir de imagenes. ((ver filmina 11 de la presentacion ))
 
 
@@ -118,19 +122,131 @@ Por ej. mediante el modulo de gpu de la libreria OpenCV se estan realizando la f
 \chapter{Trabajo experimental}
 \section{Futbol robot}
 % Aca explico el problema en si
+El trabajo consiste en un sistema de visión por computador para el reconocimiento de objetos en un partido de Futbol de robots.
+El futbol de robots se puede definir como una competición de tecnología robótica de avanzada en un espacio contenido
+Este trabajo se acota a una categoría particular de la competencia, en la cual los equipos se componen de 5 robots controlados por un sistema centralizado. 
+Los robots se identifican por el color de sus 'camisetas'. Cada robot debe llevar el color designado para su equipo y puede llevar otros colores para identificar los robots dentro de un equipo.
+No puede tener el color del equipo contrario en ningun lugar de su camiseta.
+Ademas, ningun robot puede tener el color caracterísico de la pelota(naranja) en su camiseta.
+Todo el procesamiento se realiza desde un sistema central y no se permite la intervencion de humanos a menos que el juego este detenido.
+El sistema central dispone de las imágenes tomadas por una unica camara central situada sobre el campo de juego.
+Una forma de definir el sistema de control es dividir el problema en las siguientes áreas:
+Reconocimiento del campo: usando la imagen de la cámara, y posiblemente información anterior, se determina la posición, velocidad y orientación de los robots de ambos equipos y de la pelota.
+Planificación de las acciones de los robots: Se determina las acciones a tomar con objeto de lograr el objetivo de trasladar la pelota al objetivo.
+Control de los robots: Se usa un sistema de comunicación inalámbrico para mover los robots de acuerdo a la estrategia definida.
+
+
+\section{Detección en tiempo real}
+Dentro de las etapas definidas en la seccion anterior hay diversos procesos que requieren de tiempo: latencia de la camara(desde que se toma la imagen hasta que se comienza a procesar),
+latencia de la deteccion, latencia de definicion de estrategia, latencia de comunicación.
+El objetivo es que la toma de decisiones y la ejecucion de estas se realice en un tiempo donde la imagen sobre la cual se estan tomando las decisiones sea representativa del estado actual del campo.
+La realidad es que el sistema está en continuo cambio, aún cuando los tiempos de latencia sean muy chicos, por lo tanto se realizan 2 aproximaciones: 
+-Modificar los algoritmos de toma de decisiones para tener en cuenta que el sistema ha cambiado desde que se tiene la informacion, posiblemente usando informacion anterior.
+-disminuir lo mas posible la latencia en todos los pasos del procesamiento, de forma tal que la imagen sea lo mas actual posible.
+
+En un sistema de tiempo real duro, el procesamiento solo sería válido si se completan todas las etapas antes de que se capture la proxima imágen, la cual invalida el estado descrito por la imagen anterior.
+
 \section{Implementacion existente}
+
+El trabajo esta centrado en el primer paso del procesamiento, la etapa de reconocimiento del campo. 
+En este paso, se recibe una imágen actual del estado del campo y a partir de esta se deben detectar las posiciones de los robots de cada equipo y de la pelota.
+% Dado que esta información sera utilizada para planificar las acciones a realizar por los robots, es necesario disminuir la latencia en el proceso de detección de los elementos del campo(robots, pelotas, etc)
+% Como no se trabaja con un sistema operativo de tiempo real duro que impone limites en los tiempos de procesamiento, se realizan las mediciones que indican cual es la latencia en esta etapa.
+
+Para realizar esto disponemos de una libreria que permite procesar frames capturados a partir del video de un juego. 
+La libreria permite detectar los elementos de cada cuadro (robots y pelota) devolviendo la información relevante. 
+
+El proceso de detección no se va a detallar nuevamente, se puede encontrar en detalle en Ref. \cite[capitulo 5]{Jaureguiberry}
+En esta sección solo se verá en forma general los pasos y se detallan brevemente las funcionalidades que seran optimizadas usando gpu.
+
 
 \subsection{La libreria bottracker}
 % Aca explico el codigo de lo que esta implementado, basicamente los pasos
 
-\subsection{Programa cliente}
-% Aca explico el programa que se usa como prueba
+La clase central de la libreria es bot\_tracker \cite[]{Jaureguiberry}. Esta clase necesita ser instanciada y configurada con los parametros necesarios(imagen de background, colores, etc) para poder realizar todo el proceso de detección.
+
+
+
+
 
 \section{Implementaciones sobre GPU}
 % Aca explico todos los pasos de bottracker que pueden ser ejecutados sobre gpu porque estan implementados en el modulo OpenCV GPUs
+Como se explicó previamente, una de las aproximaciones para que el procesamiento de imágenes se adapte a la realidad cambiante del juego de futbol es disminuir la latencia en todos los pasos que involucra este procesamiento.
+La aceleración de esta etapa mediante el uso de GPU tiene este objetivo. 
+Si la optimizacion lograda mediante el uso de funciones implementadas sobre GPU no supera el tiempo extra para transferir los datos hacia/desde la memoria GPU, entonces se reducirá el tiempo total requerido para esta etapa y las decisiones que se tomaran a continuación estarán basadas en información mas actual.
+
+La idea de esta sección es ir planteando modificaciones individuales en el algoritmo implementado usando funciones sobre CPU.
+El objetivo de esto es tener un conjunto de implementaciones distintas que implementen funciones independientes sobre GPU, ejecutando el resto sobre CPU.
+De esta forma se puede realizar una analisis en funcion de la operacion que se esta optimizando y no del contexto en el cual ocurre.
+Finalmente se plantea una version donde se implementan sobre GPU todas las funciones posibles (version mas optimizada) y es la que se usa para comparar la optimizacion lograda en el contexto de la deteccion de imagenes para futbol de robot.
+
+
+\subsection{Algoritmos}
+
+En las secciones anteriores se describio el codigo para la deteccion de imagenes en el cual se basa este trabajo. 
+Hay 3 operaciones de este proceso que han sido implementadas en el modulo gpu de OpenCV. Las cuales se corresponden con el proceso de deteccion de blobs descrito en ref. \cite[capitulo 5.1]{Jaureguiberry}.
+Repasemos en primer lugar cuales son estas 3 operaciones(visto en el capitulo de implementacion existente) y cuales son sus posiblidades de paralelizacion:
+% Estas son: conversion a escala de grises, diferencia absoluta con el fondo y conversion de la diferencia a valores binarios.
+
+\begin{description}
+ \item [Conversion a escala de grises: ]
+ \item [Diferencia absoluta: ] En este paso lo que se hace es calcular la diferencia absoluta entre el valor de cada pixel del frame(en escala de grises) y el valor del pixel correspondiente del fondo. 
+ Este proceso involucra un calculo aritmetico simple entre valores para cada pixel, y es totalmente independiente uno de otro, por lo que es totalmente paralelizable. 
+ Sin embargo, el costo de este paso (que crece con el tamaño de la imagen) no es tan significativo ya que solo se debe hacer 1 calculo simple para cada posicion de la matriz(ORDEN N?? CON N EL NUMERO DE PIXELES).
+ \item[Conversion a valores binarios:] Este paso también involucra una operacion simple sobre cada pixel. Implica puntualmente realizar la comparacion del valor en cada pixel con un valor de threshold y asignarle 1 o 0 segun sea mayor o menor que este.
+
+ \end{description}
+ 
+La primera modificacion planteada es la mas relevante y consiste en ejecutar la conversion a escala de grises sobre gpu. 
+Para esto, el s 
+
+
+
+
+Las operaciones de matrices como la conversion a escala de grises, la
+diferencia absoluta y la umbralizacion son operaciones que trabajan proce-
+sando pixeles de la imagen en forma independiente y son casos interesantes
+para optimizar usando paralelismo. Son del tipo de operaciones Embarras-
+singly parallel [13], donde practicamente el tiempo de procesamiento podrıa
+acelerarse en el orden de la cantidad de procesadores usados. 
+
+\subsection{Sistema de pruebas}
+% Aca explico el programa que se usa como prueba y el video, etc
+Para realizar las pruebas se reutilizo gran parte del programa cliente descrito en \cite[capitulo 4]{Jaureguiberry}.
 
 \subsection{Resultados}
+% COMO SE DESARROLLO DURANTE LOS CAPITULOS PREVIOS , EL OBJETIVO DE ESTE TRABAJO ES MEJORAR EL PROCESO DE DETECCION MEJORANDO LA LATENCIA DE ESTE.
+% LOS RESULTADOS QUE NOS INTERESAN SON LOS TIEMPOS QUE DEMORA EN PROCESARSE CADA FRAME
+
+
+% PARA HACER LA EVALUACION CREO QUE ME CONVIENE ARMAR UNA TABLA QUE DIGA CPU vs GPU Y VAYA LISTANDO LOS TIEMPOS ***DE CADA OPERACION** EN CPU vs EN GPU(INCLUIDA LA TRANSFERENCIA)
+% DESPUES AL FINAL HAGO UNA EVALUACION DEL TIEMPO TOTAL HACIENDO TODO LO POSIBLE SOBRE GPU vs ALGORITMO COMPLETO SOBRE CPU
+
+
+\subsection{Hardware utilizado}
 
 \chapter{Conclusiones y trabajo futuro}
+
+% BUSCAR EN ALGUN LADO (FIJARSE LAS REFERENCIAS DE Jaureguiberry) A VER CUANTO SE AVANZO EN CUANTO A LA LATENCIA DE LAS OTRAS ETAPAS DEL PROCESAMIENTO
+% (POR EJ. LA ETAPA DE COMUNICACION QUE TARDABA MIL AÑOS)
+
+
+
+\bibliographystyle {plainnat}
+\bibliography{informeEguinoa}
+% \begin{thebibliography}{9}
+
+
+% \bibo{lamport94}
+%   Leslie Lamport,
+%   \emph{\LaTeX: a document preparation system}.
+%   Addison Wesley, Massachusetts,
+%   2nd edition,
+%   1994.
+
+% \bibitem{Jaureguiberry2011}
+% \bibitem{opencvLibrary}
+  
+%   \end{thebibliography}
 
 \end{document}          
