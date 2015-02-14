@@ -2,7 +2,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
 \usepackage{url}
+\usepackage{listings}
 \usepackage[numbers]{natbib}
+\usepackage[x11names]{xcolor}
 % \usepackage{biblatex}
 \selectlanguage{spanish}
 
@@ -46,6 +48,7 @@ Luego se plantean modificaciones sobre esta librería, utilizando el módulo de 
 
 \chapter{Libreria OpenCV}
 
+\section{Introducción}
 La libreria OpenCV \footnote{Open Source Computer Vision Library \url{http://opencv.org}} reune una gran cantidad de algoritmos asociados a la vision por computadoras. 
 Es una libreria open-source que se distribuye bajo una licencia BSD.  is an open-source BSD-licensed library that includes several hundreds of computer vision algorithms. 
 
@@ -86,8 +89,38 @@ El tamaño del header de la matriz es constante pero el tamaño de la matriz en 
 
 
 
+\section{Aceleracion por paralelismo}
 
 
+% PRIMERO PONGO UN PAR DE LINEAS DE INTRODUCCION MUUUUUY GENERALES SOBRE PARALELISMO Y COMPUTER VISION
+
+In the past, an easy way to increase the performance of a computing device was to wait for the semiconductor processes to improve, which resulted in an increase in the clock speed of the device. When the clock speed increased, all applications got faster without the programmer modifying them or the libraries that they relied on. Unfortunately, those days are over.
+As transistors get denser, they also leak more current, and hence are less energy efficient. Improving energy efficiency has become an important priority. The process improvements now allow for more transistors per area, and there are two primary ways to put them to good use. The first is via parallelization: creating more identical processing units instead of making the single unit faster and more powerful. The second is via specialization: building domain-specific hardware accelerators that can perform a particular class of functions more efficiently. The concept of combining these two ideas—that is, running a CPU or CPUs together with various accelerators—is called heterogeneous parallel computing.
+
+High-level computer-vision tasks often contain subtasks that can be run faster on special-purpose hardware architectures than on the CPU, while other subtasks are computed on the CPU. The GPU (graphics processing unit), for example, is an accelerator that is now available on every desktop computer, as well as on mobile devices such as smart phones and tablets.
+
+
+
+
+
+
+
+Como se dijo en el capitulo previo, la funcion inicial de la gpu era renderizar imagenes a partir de escenas. 
+Con el tiempo la generalizacion en las aplicaciones llevo a que se implementen funciones totalmente distintas. 
+Por ej. mediante el modulo de gpu de la libreria OpenCV se estan realizando la funcion opuesta, que es entender las escenas a partir de imagenes. ((ver filmina 11 de la presentacion ))
+
+Computer vision is one of the tasks that often naturally map to GPUs. 
+This is not a coincidence, as computer vision solves the inverse of the computer graphics problem.
+While graphics transforms a scene or object description to pixels, vision transforms pixels to higher-level information. GPUs contain lots of similar processing units and are very efficient in executing simple, similar subtasks such as rendering or filtering pixels. Such tasks are often known as “embarrassingly parallel,” because they are so easy to parallelize efficiently on a GPU.
+
+Many tasks, however, do not parallelize easily, as they contain serial segments where the results of the later stages depend on the results of earlier stages. These serial algorithms do not run efficiently on GPUs and are much easier to program and often run faster on CPUs. Many iterative numerical optimization algorithms and stack-based tree-search algorithms belong to that class.
+
+Since many high-level tasks consist of both parallel and serial subtasks, the entire task can be accelerated by running some of its components on the CPU and others on the GPU. Unfortunately, this introduces two sources of inefficiency. One is synchronization: when one subtask depends on the results of another, the later stage needs to wait until the previous stage is done. The other inefficiency is the overhead of moving the data back and forth between the GPU and CPU memories—and since computer-vision tasks need to process lots of pixels, it can mean moving massive data chunks back and forth. These are the key challenges in accelerating computer-vision tasks on a system with both a CPU and GPU.
+
+
+
+
+\subsection{El modulo gpu}
 % AL FINAL DE LA EXPLICACION GENERAL ARRANCO CON LA EXPLICACION DEL MODULO GPU
 
 Dada la expansion en el uso de las arquitecturas GPU, se comenzó a implementar un modulo adicional que contiene optimizaciones realizadas sobre GPU.
@@ -107,14 +140,19 @@ no expression templates technique support
 All GPU functions receive GpuMat as input and output arguments. This allows to invoke several GPU algorithms without downloading data. GPU module API interface is also kept similar with CPU interface where possible. So developers who are familiar with Opencv on CPU could start using GPU straightaway.
 
 
+\subsection{Transformacion de imágenes}
+
+% ACA PONGO DE FORMA GENERAL COMO IMPLEMENTA OPENCV LA APLICACION DE UNA OPERACION SOBRE UNA IMAGEN (O DOS) PARA TRANSFORMALA DE UN ESPACIO A OTRO
+
+Una de las funcionalidades mas simples para acelerar mediante el uso de paralelismo es la aplicacion de una funcion sobre cada uno de los pixeles de una imagen, generando una nueva imagen con la salida de esta funcion.
+Si la funcion es independiente entre los pixeles es muy simple pensar que los calculos se pueden realizar totalmente en paralelo.
+
+% ACA VA TODA LA EXPLICION DE LA IMPLEMENTACION PARALELA (AGREGAR LO DE OPENCL AL PRINCIPIO TAMBIEN) , LOS TEMPLATES DE LOS KERNELS, ETC
 
 
+Este mismo esquema se puede aplicar para operaciones que tiene como entrada pixeles correspondientes en 2 imagenes. De
 
-% LINEA PARA CERRAR LA SECCION
 
-Como se dijo en el capitulo previo, la funcion inicial de la gpu era renderizar imagenes a partir de escenas. 
-Con el tiempo la generalizacion en las aplicaciones llevo a que se implementen funciones totalmente distintas. 
-Por ej. mediante el modulo de gpu de la libreria OpenCV se estan realizando la funcion opuesta, que es entender las escenas a partir de imagenes. ((ver filmina 11 de la presentacion ))
 
 
 
@@ -188,31 +226,235 @@ Hay 3 operaciones de este proceso que han sido implementadas en el modulo gpu de
 Repasemos en primer lugar cuales son estas 3 operaciones(visto en el capitulo de implementacion existente) y cuales son sus posiblidades de paralelizacion:
 % Estas son: conversion a escala de grises, diferencia absoluta con el fondo y conversion de la diferencia a valores binarios.
 
-\begin{description}
- \item [Conversion a escala de grises: ]
- \item [Diferencia absoluta: ] En este paso lo que se hace es calcular la diferencia absoluta entre el valor de cada pixel del frame(en escala de grises) y el valor del pixel correspondiente del fondo. 
- Este proceso involucra un calculo aritmetico simple entre valores para cada pixel, y es totalmente independiente uno de otro, por lo que es totalmente paralelizable. 
- Sin embargo, el costo de este paso (que crece con el tamaño de la imagen) no es tan significativo ya que solo se debe hacer 1 calculo simple para cada posicion de la matriz(ORDEN N?? CON N EL NUMERO DE PIXELES).
- \item[Conversion a valores binarios:] Este paso también involucra una operacion simple sobre cada pixel. Implica puntualmente realizar la comparacion del valor en cada pixel con un valor de threshold y asignarle 1 o 0 segun sea mayor o menor que este.
-
- \end{description}
+% \begin{description}
+%  \item [Conversion a escala de grises: ] 
+Conversion a escala de grises: En el caso de una imagen definida en RGB, la funcion que se debe calcular es: \\
+ $resultado(x,y)= 0.299  \cdot R(x,y) + 0.587  \cdot G(x,y) + 0.114  \cdot B(x,y)$  
  
-La primera modificacion planteada es la mas relevante y consiste en ejecutar la conversion a escala de grises sobre gpu. 
-Para esto, el s 
+ Es decir, hay que realizar una ecuacion lineal sobre los valores de R, G y B de cada pixel. 
+ Esto se realiza naturalmente con 2 for anidados
+ 
+  El valor resultante es, como se ve, independiente entre las posiciones de la matriz, lo que lleva a pensar que es un procesamiento muy simple de paralelizar.
+% La primera modificacion planteada es la mas relevante y consiste en ejecutar la conversion a escala de grises sobre gpu. 
+ 
+ Hay una version paralelizada en:
+% BUSCAR DONDE ESTA EL .cl DE LA VERSION 2.4 
+ 
+%  https://github.com/Itseez/opencv/blob/master/modules/imgproc/src/opencl/cvtcolor.cl         desde la linea 133, 
+
+ se puede ver que se llama a esta funcion 1 vez por cada columnas??? y dentro desta funcion el segundo for esta paralelizado usando la directiva \#pragma unroll (linea 145) sobre un for que itera sobre el numero de filas .
+  
+La funcionalidad esta tambien implementada sobre gpu. 
+El template utilizado para el kernel es:
+
+%  esta en https://github.com/Itseez/opencv/blob/2.4.10.x-prep/modules/gpu/include/opencv2/gpu/device/detail/transform_detail.hpp
+% opencv2/gpu/device/detail/transform_detail.hpp
+
+\begin{lstlisting}[frame=bt,caption={gpu/include/opencv2/gpu/device/detail/transform\_detail.hpp},
+columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
+template <typename T, typename D, typename UnOp, typename Mask>
+__global__ static void transformSimple(const PtrStepSz<T> src, PtrStep<D> dst, const Mask mask, const UnOp op)
+  {
+    const int x = blockDim.x * blockIdx.x + threadIdx.x;
+    const int y = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if (x < src.cols && y < src.rows && mask(y, x))
+      {
+	dst.ptr(y)[x] = op(src.ptr(y)[x]);
+      }
+  }
+
+\end{lstlisting}
+
+
+Los parámetros src y dst se corresponden con la imagen original y el resultado luego de la transformación.
+
+La operacion aplicada sobre cada pixel(op, linea 9) es, en este caso, la funcion lineal que se vio previamente.
+
+El kernel es llamado de tal forma que se genera un thread por cada pixel de la imagen.
+En las lineas 4 y 5 se definen valores de x e y para mapear cada thread con un par (x,y).
+Los threads que caen en valores de x mayores que el ancho de la imagen o en valores de y mayores que el largo no tendran ningun pixel sobre el cual trabajar, entonces el thread hace un return instantáneamente.
+
+
+
+% ************************************************************
+% *************EN LA VERSION 3.0 ****************************
+% **************************************************************
+
+% EN LA VERSION 3.0, LA MISMA FUNCION SE ENCUENTRA IMPLEMENTADA EN :  /modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp
+%    https://github.com/Itseez/opencv/blob/da1ac359304df7e3a933e83babc5be5f49bc48a9/modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp
+%  pegar el kernel que esta entre las lineas 158 y 168
+
+% \begin{lstlisting}[frame=bt,title={aa},caption={modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp},
+% columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
+% template <class SrcPtr, typename DstType, class UnOp, class MaskPtr> 
+% __global__ void transformSimple(const SrcPtr src, GlobPtr<DstType> dst, const UnOp op, const MaskPtr mask, const int rows, const int cols) 
+%   {
+%     const int x = blockIdx.x * blockDim.x + threadIdx.x;
+%     const int y = blockIdx.y * blockDim.y + threadIdx.y;
+% 
+%     if (x >= cols || y >= rows || !mask(y, x))
+%       return;
+% 
+%     dst(y, x) = saturate_cast<DstType>(op(src(y, x)));
+%   }
+% \end{lstlisting}
+% 
 
 
 
 
-Las operaciones de matrices como la conversion a escala de grises, la
-diferencia absoluta y la umbralizacion son operaciones que trabajan proce-
-sando pixeles de la imagen en forma independiente y son casos interesantes
-para optimizar usando paralelismo. Son del tipo de operaciones Embarras-
-singly parallel [13], donde practicamente el tiempo de procesamiento podrıa
-acelerarse en el orden de la cantidad de procesadores usados. 
 
+
+
+
+
+
+
+
+A continuación se muestra el template utilizado para generar los threads llamando al kernel anterior.
+% pongo como se llama al kernel?? division en bloques y grid???
+% esta en el mismo file: https://github.com/Itseez/opencv/blob/da1ac359304df7e3a933e83babc5be5f49bc48a9/modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp
+
+
+
+\begin{lstlisting}[frame=bt,title={aa},caption={gpu/include/opencv2/gpu/device/detail/transform\_detail.hpp},
+columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
+
+template <typename T, typename D, typename UnOp, typename Mask>
+static void call(PtrStepSz<T> src, PtrStepSz<D> dst, UnOp op, Mask mask, cudaStream_t stream)
+  {
+    typedef TransformFunctorTraits<UnOp> ft;
+
+    const dim3 threads(ft::simple_block_dim_x, ft::simple_block_dim_y, 1);
+    const dim3 grid(divUp(src.cols, threads.x), divUp(src.rows, threads.y), 1);
+
+    transformSimple<T, D><<<grid, threads, 0, stream>>>(src, dst, mask, op);
+    cudaSafeCall( cudaGetLastError() );
+
+    if (stream == 0)
+	cudaSafeCall( cudaDeviceSynchronize() );
+  }
+\end{lstlisting}
+
+
+
+
+
+
+
+% EN LA VERSION 3.0 HAY UNA PEQUEÑA DIFERENCIA
+
+% 
+% \begin{lstlisting}[frame=bt,title={aa},caption={modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp},
+% columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
+% template <class SrcPtr1, class SrcPtr2, typename DstType, class BinOp, class MaskPtr> 
+% __host__ static void call(const SrcPtr1& src1, const SrcPtr2& src2, const GlobPtr<DstType>& dst, const BinOp& op, const MaskPtr& mask, int rows, int cols, cudaStream_t stream)
+%   {
+%     const dim3 block(Policy::block_size_x, Policy::block_size_y);
+%     const dim3 grid(divUp(cols, block.x), divUp(rows, block.y));
+% 
+%     transformSimple<<<grid, block, 0, stream>>>(src1, src2, dst, op, mask, rows, cols);
+%     CV_CUDEV_SAFE_CALL( cudaGetLastError() );
+% 
+%     if (stream == 0)
+%       CV_CUDEV_SAFE_CALL( cudaDeviceSynchronize() );
+%   }
+% \end{lstlisting}
+
+
+En las lineas 7 y 8 se definen las variables que indican el tamaño del bloque y el grid para ejecutar el kernel sobre la gpu, los cuales tienen tamaños estandar definidos por la librería.
+
+En la linea 10 se ve la llamada al kernel que realiza la transformación.
+
+
+Para utilizar esta aceleracion el paso de conversion se realiza ahora de la siguiente forma:
+
+% \lstset{basicstyle=\small}
+
+\begin{lstlisting}[columns=flexible,basicstyle=\ttfamily\small\bfseries]
+  cv::gpu::cvtColor(d_frame, d_gray0, CV_BGR2GRAY);
+\end{lstlisting}
+
+
+
+ 
+%  \item [Diferencia absoluta: ] 
+ \textbf{ Diferencia absoluta:} En este paso lo que se hace es calcular la diferencia absoluta entre el valor de cada pixel del frame(en escala de grises) y el valor del pixel correspondiente del fondo(tambien convertido a escala de grises). 
+ Este proceso involucra un calculo aritmetico simple entre valores para cada pixel, y es totalmente independiente uno de otro, por lo que es totalmente paralelizable. 
+ Sin embargo, el costo de este paso (que crece con el tamaño de la imagen) no es tan significativo ya que solo se debe hacer 1 calculo simple para cada posicion de la matriz.
+
+ El proceso de paralelizacion es muy similar al caso anterior (conversion a escala de grises), pero en este caso se trabaja con 2 imagenes que se reciben por parametro. 
+ La libreria utiliza un template muy similar al anterior pero cuyo objetivo es generalizar la aplicacion de transformaciones binarias (es decir, que generan una salida a partir de 2 imagenes de entrada).
+ Este template es:
+ 
+ 
+\begin{lstlisting}[frame=bt,title={aa},caption={modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp},
+columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
+template <class SrcPtr1, class SrcPtr2, typename DstType, class BinOp, class MaskPtr>
+__global__ void transformSimple(const SrcPtr1 src1, const SrcPtr2 src2, GlobPtr<DstType> dst, const BinOp op, const MaskPtr mask, const int rows, const int cols)
+  {
+    const int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows || !mask(y, x))
+      return;
+
+    dst(y, x) = saturate_cast<DstType>(op(src1(y, x), src2(y, x)));
+  }
+\end{lstlisting}
+
+ 
+ 
+ 
+ Para utilizar la funcion sobre gpu, el codigo queda:
+  \begin{lstlisting}[columns=flexible,basicstyle=\ttfamily\small\bfseries]
+ cv::gpu::absdiff(d_gray0, d_backgroundGray, d_gray1);
+\end{lstlisting}
+
+%  \item[Conversion a valores binarios:] 
+ \textbf{Conversion a valores binarios:}  Este paso también involucra una operacion simple sobre cada pixel. 
+ Implica puntualmente realizar la comparacion del valor en cada pixel con un valor de threshold y asignarle 1 o 0 según sea mayor, menor o igual que este.
+ La funcion que hay que calcular es: 
+ \begin{displaymath}
+   resultado(x,y) = \left\{
+     \begin{array}{lr}
+       1 &  if\ input(x,y) > threshold\\
+       0 &  if\ input(x,y) \leq threshold
+     \end{array}
+   \right.
+\end{displaymath} 
+
+% TODO EL PROCESO DE PARALELIZACION E IMPLEMENTACION EN GPU ES IDENTICO AL DE CONVERTIR A ESCALA DE GRISES, LA DIFERENCIA ACA ES QUE LA OPERACION ES OTRA 
+% SE USA EL MISMO TEMPLATE
+
+
+ \begin{lstlisting}[columns=flexible,basicstyle=\ttfamily\small\bfseries]
+cv::gpu::threshold(d_gray1, d_gray1, threshold, 255, CV_THRESH_BINARY);
+\end{lstlisting}
+
+
+%  \end{description}
+ 
+ 
+ Estas 3 funcionalidades reciben por parámetros imagenenes ya alocada en la memoria de la gpu, y el resultado tambien quedará almacenado en esta memoria.
+Si se quiere utilizar esta funcionalidad como parte del procesamiento de una imagen sobre cpu se debe primero enviar la imagen a la memoria de la gpu (metodo upload visto en el cap. 2)
+y luego descargar los resultados nuevamente a la memoria cpu (metodo download cap. 2).
+ 
+%  **************************
+ Se debe tener en cuenta que el tiempo de procesamiento y por lo tanto el tiempo de aceleracion logrado dependen del tamaño de la imagen?? 
+ ya que una imagen mayor tendra mas posibilidades de paralelizacion si es que la arquitectura lo permite.
+%  PODRIA HACER UNA PRUEBA PASANDO A ESCALA DE GRISES IMAGENES DE DISTINTOS TAMAÑOS (O CALIDADES?) PARA VER COMO CAMBIA ESTO ********
+ %  ****************
+
+ Todas estas propiedades se analizarán en las proximas secciones.
+ 
 \subsection{Sistema de pruebas}
 % Aca explico el programa que se usa como prueba y el video, etc
 Para realizar las pruebas se reutilizo gran parte del programa cliente descrito en \cite[capitulo 4]{Jaureguiberry}.
+
+Una diferencia relevante es que, cuando se procesa el video de entrada, cada frame es cargado en la gpu y enviado como parametro al modulo de procesamiento. 
+Una vez que se hace toda la deteccion de blobs sobre gpu se descargan los resultados a la memoria de cpu
 
 \subsection{Resultados}
 % COMO SE DESARROLLO DURANTE LOS CAPITULOS PREVIOS , EL OBJETIVO DE ESTE TRABAJO ES MEJORAR EL PROCESO DE DETECCION MEJORANDO LA LATENCIA DE ESTE.

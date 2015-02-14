@@ -4,14 +4,18 @@
 \contentsline {section}{\numberline {1.1}Estructura del trabajo}{2}
 \contentsline {section}{\numberline {1.2}La arquitectura GPU}{2}
 \contentsline {chapter}{\numberline {2}Libreria OpenCV}{3}
-\contentsline {chapter}{\numberline {3}Trabajo experimental}{5}
-\contentsline {section}{\numberline {3.1}Futbol robot}{5}
-\contentsline {section}{\numberline {3.2}Detecci\IeC {\'o}n en tiempo real}{5}
-\contentsline {section}{\numberline {3.3}Implementacion existente}{6}
-\contentsline {subsection}{\numberline {3.3.1}La libreria bottracker}{6}
-\contentsline {section}{\numberline {3.4}Implementaciones sobre GPU}{6}
-\contentsline {subsection}{\numberline {3.4.1}Algoritmos}{7}
-\contentsline {subsection}{\numberline {3.4.2}Sistema de pruebas}{7}
-\contentsline {subsection}{\numberline {3.4.3}Resultados}{7}
-\contentsline {subsection}{\numberline {3.4.4}Hardware utilizado}{7}
-\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{8}
+\contentsline {section}{\numberline {2.1}Introducci\IeC {\'o}n}{3}
+\contentsline {section}{\numberline {2.2}Aceleracion por paralelismo}{4}
+\contentsline {subsection}{\numberline {2.2.1}El modulo gpu}{5}
+\contentsline {subsection}{\numberline {2.2.2}Transformacion de im\IeC {\'a}genes}{5}
+\contentsline {chapter}{\numberline {3}Trabajo experimental}{6}
+\contentsline {section}{\numberline {3.1}Futbol robot}{6}
+\contentsline {section}{\numberline {3.2}Detecci\IeC {\'o}n en tiempo real}{6}
+\contentsline {section}{\numberline {3.3}Implementacion existente}{7}
+\contentsline {subsection}{\numberline {3.3.1}La libreria bottracker}{7}
+\contentsline {section}{\numberline {3.4}Implementaciones sobre GPU}{7}
+\contentsline {subsection}{\numberline {3.4.1}Algoritmos}{8}
+\contentsline {subsection}{\numberline {3.4.2}Sistema de pruebas}{10}
+\contentsline {subsection}{\numberline {3.4.3}Resultados}{10}
+\contentsline {subsection}{\numberline {3.4.4}Hardware utilizado}{10}
+\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{11}
