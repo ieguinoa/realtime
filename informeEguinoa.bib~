@@ -7,9 +7,7 @@
 
 @misc{opencvReference,
   author = {OpenCV API Reference},
-  title = {},
   howpublished = "\url{http://docs.opencv.org/modules/refman.html}",
-  year = {1900}, 
   note = "[accedido ultima vez 10-Febrero-2015]"
 }
 
