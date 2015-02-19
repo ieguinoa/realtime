@@ -3,19 +3,19 @@
 \contentsline {chapter}{\numberline {1}Introduccion}{2}
 \contentsline {section}{\numberline {1.1}Estructura del trabajo}{2}
 \contentsline {section}{\numberline {1.2}La arquitectura GPU}{2}
-\contentsline {chapter}{\numberline {2}Libreria OpenCV}{3}
-\contentsline {section}{\numberline {2.1}Introducci\IeC {\'o}n}{3}
-\contentsline {section}{\numberline {2.2}Aceleracion por paralelismo}{4}
-\contentsline {subsection}{\numberline {2.2.1}El modulo gpu}{5}
-\contentsline {subsection}{\numberline {2.2.2}Transformacion de im\IeC {\'a}genes}{6}
-\contentsline {chapter}{\numberline {3}Trabajo experimental}{8}
-\contentsline {section}{\numberline {3.1}Futbol robot}{8}
-\contentsline {section}{\numberline {3.2}Detecci\IeC {\'o}n en tiempo real}{8}
-\contentsline {section}{\numberline {3.3}Implementacion existente}{9}
-\contentsline {subsection}{\numberline {3.3.1}La libreria bottracker}{9}
-\contentsline {section}{\numberline {3.4}Implementaciones sobre GPU}{9}
-\contentsline {subsection}{\numberline {3.4.1}Algoritmos}{10}
-\contentsline {subsection}{\numberline {3.4.2}Sistema de pruebas}{11}
-\contentsline {subsection}{\numberline {3.4.3}Resultados}{11}
-\contentsline {subsection}{\numberline {3.4.4}Hardware utilizado}{11}
-\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{12}
+\contentsline {chapter}{\numberline {2}La librer\IeC {\'\i }a OpenCV}{3}
+\contentsline {section}{\numberline {2.1}Generalidades}{3}
+\contentsline {section}{\numberline {2.2}Paralelismo y c\IeC {\'o}mputo heterog\IeC {\'e}neo}{5}
+\contentsline {subsection}{\numberline {2.2.1}El modulo gpu}{6}
+\contentsline {subsection}{\numberline {2.2.2}Transformacion de im\IeC {\'a}genes}{9}
+\contentsline {chapter}{\numberline {3}Trabajo experimental}{12}
+\contentsline {section}{\numberline {3.1}Futbol robot}{12}
+\contentsline {section}{\numberline {3.2}Detecci\IeC {\'o}n en tiempo real}{12}
+\contentsline {section}{\numberline {3.3}Implementacion existente}{13}
+\contentsline {subsection}{\numberline {3.3.1}La libreria bottracker}{13}
+\contentsline {section}{\numberline {3.4}Implementaciones sobre GPU}{13}
+\contentsline {subsection}{\numberline {3.4.1}Algoritmos}{14}
+\contentsline {subsection}{\numberline {3.4.2}Sistema de pruebas}{15}
+\contentsline {subsection}{\numberline {3.4.3}Resultados}{15}
+\contentsline {subsection}{\numberline {3.4.4}Hardware utilizado}{16}
+\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{18}

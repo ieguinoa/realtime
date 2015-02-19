@@ -14,8 +14,15 @@ ejecutar con ./tracktest ../tests/20110601/test1.avi
 
 
 
+PROBAR:
+
+hacer un test que suba a la gpu una imagen de un mismo tamaño(medir el tiempo que tarda esto). (no se si es necesario hacerlo varias veces para que el tiempo sea mas grande, puedo hacerlo en 5 o mas de 10 depende cuanto tarde, o quizas con 1 la medida sale )
+Repetir la prueba para imagenes de distinto tamaño(calidad)
+Esta prueba deberia dar un estimativo del tiempo que se tarda en hacer la transferencia en funcion del tamaño(calidad) de la imagen.
 
 
+Hacer una prueba similar pero midiendo el tiempo de conversion a escala de grises . EJECUTARLO EN CPU Y EN GPU! . Esta prueba deberia dar un estimativo de la diferencia de % de aceleracion que se puede obtener haciendo calculos sobre imagenes mas grandes
+Si no es mucho quilombo, hacer la misma prueba con la dif. absoluta y con la conversion a binario
 
 
 
@@ -185,3 +192,89 @@ TIEMPO DE DESCARGA(A CPU):220163   (APROX. 220)
 CALCULO DE LA DIFERENCIA(EN CPU):209374
 CALCULO DE LA DIFERENCIA(EN GPU):34451
 
+
+
+
+
+
+
+
+
+-******************
+
+
+RESULTADOS RELEVANTES:
+
+CREO QUE EN PRIMER LUGAR TENDRIA QUE PONER LOS VALORES PROMEDIO DE TOOOODOS LOS PASOS EN CPU Y GPU y los tiempos de subir/bajar la entrada y resultados desde la gpu. ESTOS SON:
+
+-subir el frame(BGR) a gpu:  707884    ***ESTO NO ESTABA MEDIDO PORQUE LO ESTABA HACIENDO EN EL PROGRAMA CLIENTE***  
+-hacer el calculo de la conversion a escala de grises:    590000(CPU)  -  220000(GPU)
+-subir/bajar el frame en escala de grises:  215000 
+-hacer el calculo de la diferencia con el background:   197728(CPU)  -  28451(GPU)
+		*******aca asumi que el backg. ya esta en la memoria de la gpu, eso se hace 1 sola vez para todo el procesamiento***** 
+		*******ESTO SE PUEDE EXPLICAR EN TERMINOS DE LA COALESCENCIA EN EL ACCESO A MEMORIA???*******
+
+-subir el frame que indica la diferencia con el background: 215000
+-bajar el frame que indica la diferencia con el background: 215000 
+		*****supuestamente tiene el mismo size que la imagen en escala de grises?? **
+-hacer el paso a binario segun un threshold:    110000(CPU) -    50000(GPU)
+-bajar la imagen en binario: 215000 
+
+****A PARTIR DE ACA ES TODO EN CPU********
+
+
+
+
+EN BASE A ESTOS VALORES DEBERIA PODER ´PREDECIR´ CUALES SON LOS PATRONES QUE VOY A OBTENER EN EL PROCESAMIENTO GLOBAL DE FUTBOL ROBOT. 
+QUE ES LO QUE EVALUO A CONTINUACION:
+
+ *****OJO QUE NO ESTOY TENIENDO EN CUENTA EL TIEMPO DE SUBIR EL FRAME A GPU AL PRINCIPIO PORQUE LO ESTOY HACIENDO EN TRACKTEST(EL PROGRAMA CLIENTE), Y EL TIEMPO SE EMPIEZA A CONTAR DESDE QUE COMIENZA PROCESS****
+
+
+***ESTE ESTA BIEN****
+TODO EN CPU:   frames: 249 - proc. time: 3138.72 us. - mean: 3184.42 us. - std. dev.: 189.954 us. - min: 1805.98 us. - max: 3420.97 us
+
+***NO ESTA BIEN***
+CAMBIO A ESCALA DE GRISES EN GPU:    frames: 249 - proc. time: 2998.65 us. - mean: 2898.26 us. - std. dev.: 449.302 us. - min: 1566.7 us. - max: 3256.21 us.      
+
+***ESTE ESTA BIEN****
+HACIENDO SOLO EL CALCULO DE LA DIF. ABSOLUTA EN GPU:  frames: 249 - proc. time: 3492.25 us. - mean: 3313 us. - std. dev.: 379.577 us. - min: 2135.21 us. - max: 3802.41 us.
+
+****ESTE ESTA BIEN****
+SOLO HACIENDO EL PASAJE A BINARIO SOBRE GPU:  frames: 249 - proc. time: 3331.14 us. - mean: 3397.7 us. - std. dev.: 437.962 us. - min: 2152.53 us. - max: 3967.43 us
+
+
+***NO ESTA BIEN****
+TODO EN GPU:  frames: 249 - proc. time: 2756.31 us. - mean: 2579.9 us. - std. dev.: 440.354 us. - min: 1472.1 us. - max: 2963.21 us
+
+
+
+
+
+
+
+
+*************NUEVAS MEDIDAS***************
+
+-subir el frame(BGR) a gpu:      
+-hacer el calculo de la conversion a escala de grises:    (CPU)  -  (GPU)
+-subir/bajar el frame en escala de grises:  
+-hacer el calculo de la diferencia con el background:   (CPU)  -  (GPU)
+		*******aca asumi que el backg. ya esta en la memoria de la gpu, eso se hace 1 sola vez para todo el procesamiento***** 
+-subir el frame que indica la diferencia con el background
+-bajar el frame que indica la diferencia con el background: 
+		*****supuestamente tiene el mismo size que la imagen en escala de grises?? **
+-hacer el paso a binario segun un threshold:    (CPU) -    (GPU)
+-bajar la imagen en binario: 
+
+
+
+
+
+
+
+
+
+EN LOS RESULTADOS HACER ANALISIS DE CUAL ES LA GANANCIA PURA DE CADA PASO (EN CPU O GPU): ESTO DEBERIA DAR UN 2X O ALGO ASI
+DESPUES HACER EL CALCULO DE LA GANANCIA DE LOS 3 PASOS EN CONJUNTO EN GPU  vs CPU  (ESTO TAMBIEN DEBERIA DAR 1.5X O ALGO ASI)
+AL FINAL HACER EL ANALISIS DE TOOODO EL PROCESO 

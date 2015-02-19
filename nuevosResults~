@@ -1,0 +1,39 @@
+HACIENDO TODO EN CPU:
+
+
+****************************
+SOLO CONVERSION A ESCALA DE GRISES EN GPU:
+
+frames: 249 - proc. time: 2368.77 us. - mean: 3342.34 us. - std. dev.: 500.653 us. - min: 2131.54 us. - max: 4051.62 us.
+frames: 249 - proc. time: 3012.29 us. - mean: 3376.44 us. - std. dev.: 498.376 us. - min: 2113.95 us. - max: 3971.82 us.
+
+****************************
+SOLO CALCULO DE LA DIF. ABSOLUTA EN GPU:
+
+frames: 249 - proc. time: 3283.21 us. - mean: 3233.43 us. - std. dev.: 443.103 us. - min: 2079.64 us. - max: 3717.49 us.
+frames: 249 - proc. time: 3513.57 us. - mean: 3290.88 us. - std. dev.: 380.317 us. - min: 2062.81 us. - max: 3811.47 us.
+
+***************************
+CONVERSION A GRIS + DIF. ABSOLUTA EN GPU:
+
+frames: 249 - proc. time: 2103.93 us. - mean: 3332.71 us. - std. dev.: 456.812 us. - min: 2100.99 us. - max: 3927.61 us.
+frames: 249 - proc. time: 2355.34 us. - mean: 3337.67 us. - std. dev.: 416.6 us. - min: 2112.98 us. - max: 3918.36 us.
+
+****************************
+SOLO THRESHOLD EN GPU:
+
+frames: 249 - proc. time: 2922.62 us. - mean: 3318.82 us. - std. dev.: 533.48 us. - min: 2171.75 us. - max: 3982.7 us.
+frames: 249 - proc. time: 3531.7 us. - mean: 3412.39 us. - std. dev.: 399.448 us. - min: 2171.61 us. - max: 3922.84 us.
+
+***************************
+DIF. ABSOLUTA  +  THRESHOLD EN GPU:
+
+frames: 249 - proc. time: 3389.63 us. - mean: 3276.13 us. - std. dev.: 382.877 us. - min: 2041.65 us. - max: 3738.05 us.
+frames: 249 - proc. time: 3343.9 us. - mean: 3262.65 us. - std. dev.: 387.145 us. - min: 2108.69 us. - max: 3794.68 us.
+
+****************************
+
+HACIENDO TODO EN GPU:
+
+frames: 249 - proc. time: 3561.99 us. - mean: 3315.95 us. - std. dev.: 429.853 us. - min: 2097.94 us. - max: 3822.91 us.
+frames: 249 - proc. time: 3383.47 us. - mean: 3307.34 us. - std. dev.: 435.752 us. - min: 2085.49 us. - max: 3814.12 us.
