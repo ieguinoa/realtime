@@ -25,15 +25,23 @@
 
 \begin{abstract}
 
-En este trabajo se desarrollan conceptos relacionados con la visión por computadora y la utilización de unidades de procesamiento gráfico(GPUs) para su optimización.
+% En este trabajo se desarrollan conceptos relacionados con la visión por computadora y la utilización de unidades de procesamiento gráfico(GPUs) para su optimización.
 
 
-En primer lugar se realiza una descripción general de la libreria OpenCV, detallando las opciones de aceleración que provee para algunas funcionalidades haciendo uso de arquitecturas paralelas. 
+% En primer lugar se realiza una descripción general de la libreria OpenCV, detallando las opciones de aceleración que provee para algunas funcionalidades haciendo uso de arquitecturas paralelas. 
 
-En una segunda parte, se realiza un desarrollo experimental que consiste en modificar un algoritmo existente para el procesamiento de imágenes provenientes de fúbol de robots, el cual utiliza la librería OpenCV. 
-Se plantean variaciones para paralelizar distintos pasos de este procesamiento utlizando el modulo gpu de dicha libería. 
-Las distintas variantes son luego evaluadas utilizando un sistema de pruebas y los resultados se analizan en base a las caracterísicas de la arquitectura.
-El proceso que se muestra, independientemente de los resultados logrados, permite conocer como es el procedimiento que se debe seguir para evaluar cualquier posiblidad de acelerar calculos sobre imagenes utilizando dispositivos GPU. 
+% En una segunda parte, se realiza un desarrollo experimental que consiste en modificar un algoritmo existente para el procesamiento de imágenes provenientes de fúbol de robots, el cual utiliza la librería OpenCV. 
+% Se plantean variaciones para paralelizar distintos pasos de este procesamiento utlizando el modulo gpu de dicha libería. 
+% Las distintas variantes son luego evaluadas utilizando un sistema de pruebas y los resultados se analizan en base a las caracterísicas de la arquitectura.
+
+A lo largo del trabajo se recorren todos los aspectos relacionados con el uso de arquitecturas GPU para aplicaciones de visión por computadora. 
+
+En primer lugar se muestran las propiedades de esta arquitectura usada para propósito general. 
+Luego se explican en detalle como OpenCV permite acelerar algunas de sus funcionalidades usando esta arquitectura. La misma funcionalidad se muestra desde el punto de vista del usuario, al cual la librería le permite utilizar la arquitectura de forma transparente a la implementación subyacente.
+
+Finalmente se ejemplifica el proceso de desarrollo para aplicaciones que utilizan este tipo de arquitecturas a través de OpenCV. 
+El desarrollo que se muestra, independientemente de los resultados logrados, permite conocer como es el procedimiento que se debe seguir para evaluar cualquier posiblidad de acelerar cálculos sobre imágenes utilizando dispositivos GPU.
+
 \end{abstract}
 
 
@@ -575,12 +583,46 @@ En la linea 10 se ve la llamada al kernel que realiza la transformación.
 
 
 A modo de comparación se muestra cómo el mismo codigo es implementado usando el framework OpenCL:
-
 % BUSCAR DONDE ESTA EL .cl DE LA VERSION 2.4 
 %  https://github.com/Itseez/opencv/blob/master/modules/imgproc/src/opencl/cvtcolor.cl         desde la linea 133, 
 
+\begin{lstlisting}[frame=bt,title={aa},caption={imgproc/src/opencl/cvtcolor.cl},
+columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
 
-De forma general, este código se llama 1 vez por cada columnas??? y dentro desta funcion el segundo for esta paralelizado usando la directiva \#pragma unroll (linea 145,primitiva para paralelizar las iteraciones) aplicada a un for que itera sobre el numero de filas .
+__kernel void RGB2Gray(__global const uchar * srcptr, int src_step, int src_offset, __global uchar * dstptr, int dst_step, int dst_offset, int rows, int cols)
+{
+  int x = get_global_id(0);
+  int y = get_global_id(1) * PIX_PER_WI_Y;
+
+  if (x < cols)
+  {
+      int src_index = mad24(y, src_step, mad24(x, scnbytes, src_offset));
+      int dst_index = mad24(y, dst_step, mad24(x, dcnbytes, dst_offset));
+
+      #pragma unroll
+      for (int cy = 0; cy < PIX_PER_WI_Y; ++cy)
+      {
+	  if (y < rows)
+	  {
+	    __global const DATA_TYPE* src = (__global const DATA_TYPE*)(srcptr + src_index);
+	    __global DATA_TYPE* dst = (__global DATA_TYPE*)(dstptr + dst_index);
+	    DATA_TYPE_4 src_pix = vload4(0, src);
+#ifdef DEPTH_5
+	    dst[0] = fma(src_pix.B_COMP, 0.114f, fma(src_pix.G_COMP, 0.587f, src_pix.R_COMP * 0.299f));
+#else
+	    dst[0] = (DATA_TYPE)CV_DESCALE(mad24(src_pix.B_COMP, B2Y, mad24(src_pix.G_COMP, G2Y, mul24(src_pix.R_COMP, R2Y))), yuv_shift);
+#endif
+	    ++y;
+	    src_index += src_step;
+	    dst_index += dst_step;
+          }
+      }
+  }
+}
+\end{lstlisting}
+
+
+No se va a hacer una descripción detallada del código pero, de forma general, el código se llama 1 vez por cada columna de la matriz y, dentro de esta función, el segundo for esta paralelizado usando la directiva \#pragma unroll (linea 145,primitiva para paralelizar las iteraciones) aplicada a un for que itera sobre el numero de filas .
 
 
 
@@ -589,11 +631,12 @@ De forma general, este código se llama 1 vez por cada columnas??? y dentro dest
 
 
 % AHORA EXPLICO CUAL ES LA DIFERENCIA SI QUIERO UTILIZAR UNA OPERACION QUE TOMA COMO INPUT 2 IMAGENES
-En el ejemplo anterior la función de transformación era aplicada sobre un solo dato de entrada. El mismo esquema de paralelizacion se puede aplicar para operaciones que tiene como entrada pixeles correspondientes a imagenes. 
-
-El proceso es muy similar al caso anterior (transformacio unaria), pero en este caso se trabaja con 2 imagenes que se reciben por parametro. 
+En el ejemplo anterior la función de transformación era aplicada sobre un solo dato de entrada. 
+El mismo esquema de paralelizacóon se puede utilizar para operaciones que tiene como entrada pixeles correspondientes a distintas imagenes. 
+El proceso es muy similar al caso anterior (transformación unaria), pero ahora se trabaja con dos imágenes que se reciben por parámetro. 
 % La libreria utiliza un template muy similar al anterior pero cuyo objetivo es generalizar la aplicacion de transformaciones binarias (es decir, que generan una salida a partir de 2 imagenes de entrada).
-El template utilizado para el kernel es:
+
+El template utilizado ahora para el kernel es:
  
 \begin{lstlisting}[frame=bt,title={aa},caption={modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp},
 columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
@@ -612,6 +655,15 @@ __global__ void transformSimple(const SrcPtr1 src1, const SrcPtr2 src2, GlobPtr<
 
 
 
+Como se ve en la línea 10, ahora la funcion (op) recibe por parámetro dos elementos de imágenes distintas.
+
+
+
+
+
+Las funciones de transformación mostradas en esta sección son solo algunas de las funcionalidades que estan implementadas en el módulo GPU en OpenCV. 
+Se tomaron como ejemplo en primer lugar por su simplicidad a la hora de ser paralelizadas pero además porque estas funciones abstractas de transformación generalizan la implementación
+de distintas operaciones que se utilizarán para el desarrollo experimental en la segunda parte de este trabajo.
 
 
 
@@ -626,6 +678,42 @@ __global__ void transformSimple(const SrcPtr1 src1, const SrcPtr2 src2, GlobPtr<
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%  ***************************************************************
+% **********    SEGUNDA PARTE  **********************************
+% ***************************************************************
 
 
 
@@ -637,29 +725,42 @@ __global__ void transformSimple(const SrcPtr1 src1, const SrcPtr2 src2, GlobPtr<
 \chapter{Trabajo experimental}
 \section{Futbol robot}
 % Aca explico el problema en si
-El trabajo consiste en un sistema de visión por computador para el reconocimiento de objetos en un partido de Futbol de robots.
-El futbol de robots se puede definir como una competición de tecnología robótica de avanzada en un espacio contenido
+El trabajo se centra en un sistema de visión por computadora para el reconocimiento de objetos en un partido de fúutbol de robots.
+
+El futbol de robots se puede definir como una competición de tecnología robótica de avanzada en un espacio contenido.
 Este trabajo se acota a una categoría particular de la competencia, en la cual los equipos se componen de 5 robots controlados por un sistema centralizado. 
 Los robots se identifican por el color de sus 'camisetas'. Cada robot debe llevar el color designado para su equipo y puede llevar otros colores para identificar los robots dentro de un equipo.
-No puede tener el color del equipo contrario en ningun lugar de su camiseta.
-Ademas, ningun robot puede tener el color caracterísico de la pelota(naranja) en su camiseta.
-Todo el procesamiento se realiza desde un sistema central y no se permite la intervencion de humanos a menos que el juego este detenido.
-El sistema central dispone de las imágenes tomadas por una unica camara central situada sobre el campo de juego.
-Una forma de definir el sistema de control es dividir el problema en las siguientes áreas:
-Reconocimiento del campo: usando la imagen de la cámara, y posiblemente información anterior, se determina la posición, velocidad y orientación de los robots de ambos equipos y de la pelota.
-Planificación de las acciones de los robots: Se determina las acciones a tomar con objeto de lograr el objetivo de trasladar la pelota al objetivo.
-Control de los robots: Se usa un sistema de comunicación inalámbrico para mover los robots de acuerdo a la estrategia definida.
+% No se puede tener el color del equipo contrario en ningun lugar de su camiseta.
+Además, ningún robot puede tener el color caracterísico de la pelota(naranja) en su camiseta.
+
+Todo el procesamiento se realiza desde un sistema central y no se permite la intervención de humanos a menos que el juego este detenido.
+Este sistema central dispone de las imágenes tomadas por una única camara central situada sobre el campo de juego.
+El procesamiento por parte de este sistema de control se puede dividir en 3 pasos:
+\begin{enumerate}
+ \item Reconocimiento del campo: usando la imagen de la cámara, y posiblemente información anterior, se determina la posición, velocidad y orientación de los robots de ambos equipos y de la pelota.
+ \item Planificación de las acciones de los robots: Se determina las acciones a tomar con objeto de lograr el objetivo de trasladar la pelota al objetivo.
+ \item Control de los robots: Se usa un sistema de comunicación inalámbrico para mover los robots de acuerdo a la estrategia definida.
+\end{enumerate}
+
+
+
+
 
 
 \section{Detección en tiempo real}
-Dentro de las etapas definidas en la seccion anterior hay diversos procesos que requieren de tiempo: latencia de la camara(desde que se toma la imagen hasta que se comienza a procesar),
-latencia de la deteccion, latencia de definicion de estrategia, latencia de comunicación.
-El objetivo es que la toma de decisiones y la ejecucion de estas se realice en un tiempo donde la imagen sobre la cual se estan tomando las decisiones sea representativa del estado actual del campo.
-La realidad es que el sistema está en continuo cambio, aún cuando los tiempos de latencia sean muy chicos, por lo tanto se realizan 2 aproximaciones: 
--Modificar los algoritmos de toma de decisiones para tener en cuenta que el sistema ha cambiado desde que se tiene la informacion, posiblemente usando informacion anterior.
--disminuir lo mas posible la latencia en todos los pasos del procesamiento, de forma tal que la imagen sea lo mas actual posible.
+Dentro de las etapas definidas en la seccion anterior hay diversos procesos que requieren de tiempo: latencia de la cámara(desde que se toma la imagen hasta que se comienza a procesar),
+latencia de la detección de los objetos, latencia de definición de estrategia, latencia de comunicación.
 
 En un sistema de tiempo real duro, el procesamiento solo sería válido si se completan todas las etapas antes de que se capture la proxima imágen, la cual invalida el estado descrito por la imagen anterior.
+El objetivo de esto es que la toma de decisiones y la ejecución de éstas se realice en un tiempo donde la imagen sobre la cual se estan tomando las decisiones sea representativa del estado actual del campo.
+La realidad es que el sistema está en continuo cambio, aún cuando los tiempos de latencia sean muy chicos, por lo tanto se realizan 2 aproximaciones: 
+\begin{itemize}
+ \item Modificar los algoritmos de toma de decisiones para tener en cuenta que el sistema ha cambiado desde que se tiene la informacion, posiblemente usando informacion anterior.
+ \item Disminuir lo mas posible la latencia en todos los pasos del procesamiento, de forma tal que la imagen sea lo mas actual posible.
+
+ \end{itemize}
+
+En este trabajo nos centraremos en disminuir lo mas posible la latencia, en particular centrandonos en la etapa de reconocimiento del campo.
 
 \section{Implementacion existente}
 

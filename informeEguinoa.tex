@@ -680,34 +680,95 @@ de distintas operaciones que se utilizarán para el desarrollo experimental en l
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%  ***************************************************************
+% **********    SEGUNDA PARTE  **********************************
+% ***************************************************************
+
+
+
+
+
+
+
+
 \chapter{Trabajo experimental}
 \section{Futbol robot}
 % Aca explico el problema en si
-El trabajo consiste en un sistema de visión por computador para el reconocimiento de objetos en un partido de Futbol de robots.
-El futbol de robots se puede definir como una competición de tecnología robótica de avanzada en un espacio contenido
+El trabajo se centra en un sistema de visión por computadora para el reconocimiento de objetos en un partido de fúutbol de robots.
+
+El futbol de robots se puede definir como una competición de tecnología robótica de avanzada en un espacio contenido.
 Este trabajo se acota a una categoría particular de la competencia, en la cual los equipos se componen de 5 robots controlados por un sistema centralizado. 
 Los robots se identifican por el color de sus 'camisetas'. Cada robot debe llevar el color designado para su equipo y puede llevar otros colores para identificar los robots dentro de un equipo.
-No puede tener el color del equipo contrario en ningun lugar de su camiseta.
-Ademas, ningun robot puede tener el color caracterísico de la pelota(naranja) en su camiseta.
-Todo el procesamiento se realiza desde un sistema central y no se permite la intervencion de humanos a menos que el juego este detenido.
-El sistema central dispone de las imágenes tomadas por una unica camara central situada sobre el campo de juego.
-Una forma de definir el sistema de control es dividir el problema en las siguientes áreas:
-Reconocimiento del campo: usando la imagen de la cámara, y posiblemente información anterior, se determina la posición, velocidad y orientación de los robots de ambos equipos y de la pelota.
-Planificación de las acciones de los robots: Se determina las acciones a tomar con objeto de lograr el objetivo de trasladar la pelota al objetivo.
-Control de los robots: Se usa un sistema de comunicación inalámbrico para mover los robots de acuerdo a la estrategia definida.
+% No se puede tener el color del equipo contrario en ningun lugar de su camiseta.
+Además, ningún robot puede tener el color caracterísico de la pelota(naranja) en su camiseta.
+
+Todo el procesamiento se realiza desde un sistema central y no se permite la intervención de humanos a menos que el juego este detenido.
+Este sistema central dispone de las imágenes tomadas por una única camara central situada sobre el campo de juego.
+El procesamiento por parte de este sistema de control se puede dividir en 3 pasos:
+\begin{enumerate}
+ \item Reconocimiento del campo: usando la imagen de la cámara, y posiblemente información anterior, se determina la posición, velocidad y orientación de los robots de ambos equipos y de la pelota.
+ \item Planificación de las acciones de los robots: Se determina las acciones a tomar con objeto de lograr el objetivo de trasladar la pelota al objetivo.
+ \item Control de los robots: Se usa un sistema de comunicación inalámbrico para mover los robots de acuerdo a la estrategia definida.
+\end{enumerate}
 
 
-\section{Detección en tiempo real}
-Dentro de las etapas definidas en la seccion anterior hay diversos procesos que requieren de tiempo: latencia de la camara(desde que se toma la imagen hasta que se comienza a procesar),
-latencia de la deteccion, latencia de definicion de estrategia, latencia de comunicación.
-El objetivo es que la toma de decisiones y la ejecucion de estas se realice en un tiempo donde la imagen sobre la cual se estan tomando las decisiones sea representativa del estado actual del campo.
-La realidad es que el sistema está en continuo cambio, aún cuando los tiempos de latencia sean muy chicos, por lo tanto se realizan 2 aproximaciones: 
--Modificar los algoritmos de toma de decisiones para tener en cuenta que el sistema ha cambiado desde que se tiene la informacion, posiblemente usando informacion anterior.
--disminuir lo mas posible la latencia en todos los pasos del procesamiento, de forma tal que la imagen sea lo mas actual posible.
 
-En un sistema de tiempo real duro, el procesamiento solo sería válido si se completan todas las etapas antes de que se capture la proxima imágen, la cual invalida el estado descrito por la imagen anterior.
 
-\section{Implementacion existente}
+
+
+\subsection{Detección en tiempo real}
+Dentro de las etapas definidas para el sistema de control hay diversos procesos cuyo tiempo es necesario considerar: latencia de la cámara(desde que se toma la imagen hasta que se comienza a procesar),
+latencia de la detección de los objetos, latencia de definición de estrategia y latencia de comunicación.
+
+En un sistema de tiempo real duro, el procesamiento solo sería válido si se completan todas las etapas antes de que se capture la proxima imagen, la cual invalida el estado descrito por la imagen anterior.
+El objetivo de esto es que la toma de decisiones y la ejecución de éstas se realice en un tiempo donde la imagen sobre la cual se estan tomando las decisiones sea representativa del estado actual del campo.
+La realidad es que el sistema está en continuo cambio y, aún cuando los tiempos limite definidos sean muy chicos,....   . Por lo tanto se utilizan dos aproximaciones: 
+\begin{itemize}
+ \item Modificar los algoritmos de toma de decisiones para tener en cuenta que el sistema ha cambiado desde que se tiene la informacion, posiblemente usando informacion anterior.
+ \item Disminuir lo mas posible la latencia en todos los pasos del procesamiento, de forma tal que la imagen sea lo mas actual posible.
+
+ \end{itemize}
+
+En este trabajo nos centraremos en disminuir lo mas posible la latencia, en particular sobre la etapa de reconocimiento del campo.
+
+
+
+
+
+% \section{Implementacion existente}
+
+\subsection{La libreria bottracker}
 
 El trabajo esta centrado en el primer paso del procesamiento central para futbol robot, esto es, la etapa de reconocimiento del campo. 
 En este paso, se recibe una imagen actual del estado del campo y a partir de esta se deben detectar las posiciones de los robots de cada equipo y de la pelota.
@@ -715,22 +776,31 @@ En este paso, se recibe una imagen actual del estado del campo y a partir de est
 % Como no se trabaja con un sistema operativo de tiempo real duro que impone limites en los tiempos de procesamiento, se realizan las mediciones que indican cual es la latencia en esta etapa.
 
 
-Para realizar esto disponemos de una libreria \cite{Jaureguiberry} que permite realizar el procesamiento de estos frames. 
-La funcion central de la libreria recibe por parametro una imagen correspondiente al cuadro actual del estado del campo y detecta a partir de este los elementos de interes 
+Para realizar esto disponemos de una librería \cite{Jaureguiberry} que permite realizar el procesamiento de cuadros capturados por la cámara de video del campo de juego. 
+La funcion central de la libreria recibe por parametro una imagen correspondiente al cuadro actual del estado del campo y detecta a partir de este los elementos de interés 
 (robots y pelota) devolviendo la información relevante. 
 
-El proceso de detección no se va a explicar nuevamente pero se puede encontrar en detalle en Ref. \cite[capitulo 5]{Jaureguiberry}
-En esta sección se veran en forma general los pasos del procesamiento y se detallaran las funcionalidades optimizadas usando gpu.
 
-
-
-
-\subsection{La libreria bottracker}
+% En esta sección se verán en forma general los pasos del procesamiento y se detallarán las funcionalidades optimizadas usando gpu.
 
 La clase central de la libreria es bot\_tracker \cite[]{Jaureguiberry}. 
 Esta clase necesita ser instanciada y configurada con los parametros necesarios(imagen de background, colores, etc) para poder realizar todo el proceso de detección.
 
+
 % Explicar de forma simple los pasos
+La función process recibe por parámetro un cuadro a la vez y es donde se realiza todo el procesamiento para la detección de los objetos.
+Este proceso no se va a explicar nuevamente pero se puede encontrar en detalle en Ref. \cite[capitulo 5]{Jaureguiberry}
+% En forma simplificada, la secuencia de pasos del procesamiento es:
+
+En partícular, en este trabajo nos centraremos en el primer paso del procesamiento, la detección de blobs. Esta estapa implica tres pasos:
+
+\begin{enumerate}
+ \item Convertir a escala de grises el cuadro capturado.
+ \item Construir una imagen nueva mediante la diferencia absoluta entre el cuadro y el background (ambos en escala de grises)
+ \item Se aplica un valor de threshold(umbral) a la imagen resultante del paso anterior. 
+\end{enumerate}
+
+
 
 
 
@@ -742,14 +812,18 @@ Esta clase necesita ser instanciada y configurada con los parametros necesarios(
 % ACA EXPLICO CUAL ES LA BASE DE USAR OPTIMIZACION POR GPUs EN ESTE TIPO DE PROBLEMAS/ALGORITMOS DE FUTBOL ROBOT
 % BLA BLA ..... DIGO QUE VOY A HACER, QUE ESPERO OBTENER, ETC......
 
-Como se explicó previamente, una de las aproximaciones para que el procesamiento de imágenes se adapte a la realidad cambiante del juego de futbol es disminuir la latencia en todos los pasos que involucra este procesamiento.
+Como se explicó previamente, una de las aproximaciones para que el procesamiento de imágenes se adapte a la realidad cambiante
+del juego de futbol es disminuir la latencia en todos los pasos que involucra este procesamiento.
 La aceleración de esta etapa mediante el uso de GPU tiene este objetivo. 
-Si la optimizacion lograda mediante el uso de funciones implementadas sobre GPU no supera el tiempo extra para transferir los datos hacia/desde la memoria GPU, entonces se reducirá el tiempo total requerido para esta etapa y las decisiones que se tomaran a continuación estarán basadas en información mas actual.
+Si la optimización lograda mediante el uso de funciones implementadas sobre GPU no supera el overhead asociado a transferir los datos hacia/desde
+la memoria GPU, entonces se reducirá el tiempo total requerido para esta etapa y las decisiones que se tomaran a continuación estarán basadas en información mas actual.
 
-La idea de esta sección es ir planteando modificaciones individuales en el algoritmo, implementado acutalmente usando funciones sobre CPU.
-El objetivo de esto es tener un conjunto de implementaciones distintas que implementen funciones independientes sobre GPU, ejecutando el resto sobre CPU.
-De esta forma se puede realizar una analisis en funcion de la operacion que se esta optimizando y no del contexto en el cual ocurre.
-Finalmente se plantea una version donde se implementan sobre GPU todas las funciones posibles (version mas optimizada) y es la que se usa para comparar la optimizacion lograda en el contexto de la deteccion de imagenes para futbol de robot.
+La idea de esta sección es plantear modificaciones individuales en el algoritmo de la función process(librería bottracker), implementado acutalmente usando funciones sobre CPU.
+
+
+El objetivo de esto es tener un conjunto de implementaciones distintas que aceleren distintos pasos independientes sobre GPU, ejecutando el resto sobre CPU.
+De esta forma se puede realizar una análisis en función de la operación que se esta optimizando y no del contexto en el cual ocurre.
+Finalmente se plantea una versión donde se implementan sobre GPU todas las funciones posibles (version mas optimizada) y es la que se usa para comparar la optimizacion lograda en el contexto de la deteccion de imagenes para futbol de robot.
 
 
 
@@ -866,7 +940,7 @@ y luego descargar los resultados nuevamente a la memoria cpu (metodo download ca
 % Aca explico el programa que se usa como prueba y el video, etc
 Para realizar las pruebas se reutilizo gran parte del programa cliente descrito en \cite[capitulo 4]{Jaureguiberry}.
 
-Una diferencia relevante es que, cuando se procesa el video de entrada, cada frame es cargado en la gpu y enviado como parametro al modulo de procesamiento. 
+Una diferencia relevante es que, cuando se procesa el video de entrada, cada frame es cargado en la gpu y enviado como parámetro al módulo de procesamiento. 
 Una vez que se hace toda la deteccion de blobs sobre gpu se descargan los resultados a la memoria de cpu
 
 \subsection{Resultados}

@@ -10,12 +10,11 @@
 \contentsline {subsection}{\numberline {2.2.2}Transformacion de im\IeC {\'a}genes}{9}
 \contentsline {chapter}{\numberline {3}Trabajo experimental}{12}
 \contentsline {section}{\numberline {3.1}Futbol robot}{12}
-\contentsline {section}{\numberline {3.2}Detecci\IeC {\'o}n en tiempo real}{12}
-\contentsline {section}{\numberline {3.3}Implementacion existente}{13}
-\contentsline {subsection}{\numberline {3.3.1}La libreria bottracker}{13}
-\contentsline {section}{\numberline {3.4}Implementaciones sobre GPU}{13}
-\contentsline {subsection}{\numberline {3.4.1}Algoritmos}{14}
-\contentsline {subsection}{\numberline {3.4.2}Sistema de pruebas}{15}
-\contentsline {subsection}{\numberline {3.4.3}Resultados}{15}
-\contentsline {subsection}{\numberline {3.4.4}Hardware utilizado}{16}
+\contentsline {subsection}{\numberline {3.1.1}Detecci\IeC {\'o}n en tiempo real}{12}
+\contentsline {subsection}{\numberline {3.1.2}La libreria bottracker}{13}
+\contentsline {section}{\numberline {3.2}Implementaciones sobre GPU}{13}
+\contentsline {subsection}{\numberline {3.2.1}Algoritmos}{14}
+\contentsline {subsection}{\numberline {3.2.2}Sistema de pruebas}{15}
+\contentsline {subsection}{\numberline {3.2.3}Resultados}{15}
+\contentsline {subsection}{\numberline {3.2.4}Hardware utilizado}{17}
 \contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{18}
