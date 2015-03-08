@@ -12,48 +12,71 @@
 \@writefile{toc}{\select@language{spanish}}
 \@writefile{lof}{\select@language{spanish}}
 \@writefile{lot}{\select@language{spanish}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduccion}{2}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introducci\IeC {\'o}n}{2}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{toc}{\contentsline {section}{\numberline {1.1}Estructura del trabajo}{2}}
-\@writefile{toc}{\contentsline {section}{\numberline {1.2}La arquitectura GPU}{2}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}La librer\IeC {\'\i }a OpenCV}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}El procesador GPU}{2}}
+\citation{cudaDoc}
+\citation{openclDoc}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.1}Modelo de programaci\IeC {\'o}n}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{Componentes}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{Descripci\IeC {\'o}n}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces Agrupaci\IeC {\'o}n de threads en bloques y grid}}{4}}
+\newlabel{grilla}{{1.1}{4}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1.1}imgproc/src/opencl/cvtcolor.cl}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces Esquema de la arquitecura de una GPU}}{5}}
+\newlabel{arquitectura}{{1.2}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.2}Arquitectura}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.3}Aspectos de performance}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{Accesos a memoria}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{Control de flujo}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{Tama\IeC {\~n}o de bloques}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{Memoria local y registros}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{Explotaci\IeC {\'o}n del paralelismo}{7}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}La librer\IeC {\'\i }a OpenCV}{9}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Generalidades}{3}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.1}M\IeC {\'o}dulo core}{3}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.2}M\IeC {\'o}dulo imgproc}{4}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Paralelismo y c\IeC {\'o}mputo heterog\IeC {\'e}neo}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}El modulo gpu}{6}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.3}Aplicar threshold a imagen en gris - CPU}{7}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.4}Aplicar threshold a imagen en gris - GPU}{8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Transformacion de im\IeC {\'a}genes}{9}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.5}gpu/include/opencv2/gpu/device/detail/transform\_detail.hpp}{9}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.6}gpu/include/opencv2/gpu/device/detail/transform\_detail.hpp}{9}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.7}imgproc/src/opencl/cvtcolor.cl}{10}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.8}modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp}{11}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Trabajo experimental}{12}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Generalidades}{9}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.1}M\IeC {\'o}dulo core}{9}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.2}M\IeC {\'o}dulo imgproc}{10}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Paralelismo y c\IeC {\'o}mputo heterog\IeC {\'e}neo}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}El m\IeC {\'o}dulo gpu}{12}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.3}Aplicar threshold a imagen en gris - CPU}{13}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.4}Aplicar threshold a imagen en gris - GPU}{13}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Transformaci\IeC {\'o}n de im\IeC {\'a}genes}{14}}
+\newlabel{templateKernel}{{2.5}{14}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.5}gpu/include/opencv2/gpu/device/detail/transform\_detail.hpp}{14}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.6}gpu/include/opencv2/gpu/device/detail/transform\_detail.hpp}{15}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.7}imgproc/src/opencl/cvtcolor.cl}{15}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.8}modules/cudev/include/opencv2/cudev/grid/detail/transform.hpp}{16}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Trabajo experimental}{17}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {3.1}Futbol robot}{12}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Detecci\IeC {\'o}n en tiempo real}{12}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}F\IeC {\'u}tbol robot}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Detecci\IeC {\'o}n en tiempo real}{17}}
 \citation{Jaureguiberry}
 \citation{Jaureguiberry}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}La libreria bottracker}{18}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Implementaciones sobre GPU}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Algoritmos}{19}}
+\@writefile{toc}{\contentsline {subsubsection}{Conversi\IeC {\'o}n a escala de grises}{19}}
+\@writefile{toc}{\contentsline {subsubsection}{Diferencia absoluta}{19}}
 \citation{Jaureguiberry}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}La libreria bottracker}{13}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.2}Implementaciones sobre GPU}{13}}
-\citation{Jaureguiberry}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Algoritmos}{14}}
-\citation{Jaureguiberry}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Sistema de pruebas}{15}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Resultados}{15}}
-\newlabel{sizeevstime}{{3.2.3}{17}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}Hardware utilizado}{17}}
+\@writefile{toc}{\contentsline {subsubsection}{Conversi\IeC {\'o}n a valores binarios}{20}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.1}Ejemplo de m\IeC {\'e}todo process sobre GPU}{20}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Sistema de pruebas}{20}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Resultados}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Relaci\IeC {\'o}n entre el tiempo de transferencia y el tama\IeC {\~n}o(ancho) de la imagen}}{22}}
+\newlabel{sizevstime}{{3.1}{22}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}Hardware utilizado}{22}}
 \citation{pulli2012real}
 \bibstyle{plainnat}
 \bibdata{informeEguinoa}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{18}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{23}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\bibcite{Jaureguiberry}{{1}{2011}{{Jaureguiberry}}{{}}}
-\bibcite{pulli2012real}{{2}{2012}{{Pulli et~al.}}{{Pulli, Baksheev, Kornyakov, and Eruhimov}}}
+\bibcite{cudaDoc}{{1}{}{{Documentation}}{{}}}
+\bibcite{Jaureguiberry}{{2}{2011}{{Jaureguiberry}}{{}}}
+\bibcite{pulli2012real}{{3}{2012}{{Pulli et~al.}}{{Pulli, Baksheev, Kornyakov, and Eruhimov}}}
+\bibcite{openclDoc}{{4}{}{{standard}}{{}}}

@@ -18,10 +18,30 @@
 }
 
 
+@article{pulli2012real,
+  title={Real-time computer vision with OpenCV},
+  author={Pulli, Kari and Baksheev, Anatoly and Kornyakov, Kirill and Eruhimov, Victor},
+  journal={Communications of the ACM},
+  volume={55},
+  number={6},
+  pages={61--69},
+  year={2012},
+  publisher={ACM}
+}
+
+@misc{cudaDoc ,
+  author = {NVIDIA CUDA ToolKit Documentation},
+  howpublished = "\url{http://docs.nvidia.com/cuda/}",
+  note = "[accedido ultima vez 7-Marzo-2015]"
+}
 
 
 
-
+@misc{openclDoc ,
+  author = {OpenCL },
+  howpublished = "\url{https://www.khronos.org/opencl/}",
+  note = "[accedido ultima vez 7-Marzo-2015]"
+}
 
 
 

@@ -1,20 +1,33 @@
 \select@language {spanish}
 \select@language {spanish}
-\contentsline {chapter}{\numberline {1}Introduccion}{2}
+\contentsline {chapter}{\numberline {1}Introducci\IeC {\'o}n}{2}
 \contentsline {section}{\numberline {1.1}Estructura del trabajo}{2}
-\contentsline {section}{\numberline {1.2}La arquitectura GPU}{2}
-\contentsline {chapter}{\numberline {2}La librer\IeC {\'\i }a OpenCV}{3}
-\contentsline {section}{\numberline {2.1}Generalidades}{3}
-\contentsline {section}{\numberline {2.2}Paralelismo y c\IeC {\'o}mputo heterog\IeC {\'e}neo}{5}
-\contentsline {subsection}{\numberline {2.2.1}El modulo gpu}{6}
-\contentsline {subsection}{\numberline {2.2.2}Transformacion de im\IeC {\'a}genes}{9}
-\contentsline {chapter}{\numberline {3}Trabajo experimental}{12}
-\contentsline {section}{\numberline {3.1}Futbol robot}{12}
-\contentsline {subsection}{\numberline {3.1.1}Detecci\IeC {\'o}n en tiempo real}{12}
-\contentsline {subsection}{\numberline {3.1.2}La libreria bottracker}{13}
-\contentsline {section}{\numberline {3.2}Implementaciones sobre GPU}{13}
-\contentsline {subsection}{\numberline {3.2.1}Algoritmos}{14}
-\contentsline {subsection}{\numberline {3.2.2}Sistema de pruebas}{15}
-\contentsline {subsection}{\numberline {3.2.3}Resultados}{15}
-\contentsline {subsection}{\numberline {3.2.4}Hardware utilizado}{17}
-\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{18}
+\contentsline {section}{\numberline {1.2}El procesador GPU}{2}
+\contentsline {subsection}{\numberline {1.2.1}Modelo de programaci\IeC {\'o}n}{3}
+\contentsline {subsubsection}{Componentes}{3}
+\contentsline {subsubsection}{Descripci\IeC {\'o}n}{3}
+\contentsline {subsection}{\numberline {1.2.2}Arquitectura}{5}
+\contentsline {subsection}{\numberline {1.2.3}Aspectos de performance}{6}
+\contentsline {subsubsection}{Accesos a memoria}{6}
+\contentsline {subsubsection}{Control de flujo}{6}
+\contentsline {subsubsection}{Tama\IeC {\~n}o de bloques}{6}
+\contentsline {subsubsection}{Memoria local y registros}{7}
+\contentsline {subsubsection}{Explotaci\IeC {\'o}n del paralelismo}{7}
+\contentsline {chapter}{\numberline {2}La librer\IeC {\'\i }a OpenCV}{9}
+\contentsline {section}{\numberline {2.1}Generalidades}{9}
+\contentsline {section}{\numberline {2.2}Paralelismo y c\IeC {\'o}mputo heterog\IeC {\'e}neo}{10}
+\contentsline {subsection}{\numberline {2.2.1}El m\IeC {\'o}dulo gpu}{12}
+\contentsline {subsection}{\numberline {2.2.2}Transformaci\IeC {\'o}n de im\IeC {\'a}genes}{14}
+\contentsline {chapter}{\numberline {3}Trabajo experimental}{17}
+\contentsline {section}{\numberline {3.1}F\IeC {\'u}tbol robot}{17}
+\contentsline {subsection}{\numberline {3.1.1}Detecci\IeC {\'o}n en tiempo real}{17}
+\contentsline {subsection}{\numberline {3.1.2}La libreria bottracker}{18}
+\contentsline {section}{\numberline {3.2}Implementaciones sobre GPU}{18}
+\contentsline {subsection}{\numberline {3.2.1}Algoritmos}{19}
+\contentsline {subsubsection}{Conversi\IeC {\'o}n a escala de grises}{19}
+\contentsline {subsubsection}{Diferencia absoluta}{19}
+\contentsline {subsubsection}{Conversi\IeC {\'o}n a valores binarios}{20}
+\contentsline {subsection}{\numberline {3.2.2}Sistema de pruebas}{20}
+\contentsline {subsection}{\numberline {3.2.3}Resultados}{20}
+\contentsline {subsection}{\numberline {3.2.4}Hardware utilizado}{22}
+\contentsline {chapter}{\numberline {4}Conclusiones y trabajo futuro}{23}
