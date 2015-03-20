@@ -44,7 +44,7 @@
 A lo largo del trabajo se recorren distintos aspectos relacionados con el uso de arquitecturas GPU para aplicaciones de visión por computadora. 
 
 En primer lugar se muestran las propiedades de esta arquitectura usada para propósito general. 
-Luego se introduce la librería OpenCV y se explica en detalle como implementa la aceleración de algunas de sus funcionalidades utilizando arquitecturas altamente paralelas. 
+Luego, se introduce la librería OpenCV y se explica en detalle como implementa la aceleración de algunas de sus funcionalidades utilizando arquitecturas altamente paralelas. 
 % La misma funcionalidad se muestra desde el punto de vista del usuario, al cual la librería le permite utilizar la arquitectura de forma transparente a la implementación subyacente.
 
 Finalmente se ejemplifica el proceso de desarrollo para aplicaciones que utilizan este tipo de arquitecturas a través de OpenCV. 
@@ -86,13 +86,13 @@ El objetivo es dar una idea general de las características que posee y las posi
 % El capítulo 2 se centra en la libreria OpenCV, describiendo en forma general las funcionalidades que provee y, finalmente, detallando algunas variantes asociadas a la optimizacion por paralelismo que se utilizan en el desarrollo práctico al final del trabajo. 
 
 El capítulo 2 se centra en la libreria OpenCV, donde se describe en primer lugar la estructura general y las funcionalidades que provee. 
-Luego se describe el módulo específico que implementa funcionalidades aceleradas mediante procesadores gráficos.
+Luego, se describe el módulo específico que implementa funcionalidades aceleradas mediante procesadores gráficos.
 En la última parte del capítulo se detallan las implementaciones de algunas funcionalidades caracterísicas del módulo, conectando los conceptos vistos de la arquitectura con la interfaz de la librería que el usuario utiliza de forma transparente. 
 
 % funcionalidades que provee y, finalmente, detallando algunas variantes asociadas a la optimizacion por paralelismo que se utilizan en el desarrollo práctico al final del trabajo. 
 
-El capítulo 3 muestra el desarrollo experimental asociado al trabajo. En primer lugar se describe el contexto de la aplicación y la implementacion existente para el procesamiento de imágenes de fútbol robot(libreria bottracker).
-Luego se plantean modificaciones sobre el algoritmo, utilizando el módulo de GPU provisto por OpenCV. Se hacen evaluaciones de las distintas modificaciones y se analizan los resultados basándose en conceptos explicados en los capítulos previos.
+El capítulo 3 muestra el desarrollo experimental asociado al trabajo. En primer lugar se describe el contexto de la aplicación y la implementación existente para el procesamiento de imágenes de fútbol robot(libreria bottracker).
+Luego se plantean modificaciones sobre el algoritmo, utilizando el módulo de GPU provisto por OpenCV. Finalmente, se hacen evaluaciones de las distintas modificaciones y se analizan los resultados basándose en conceptos explicados en los capítulos previos.
 
 
 
@@ -139,8 +139,7 @@ Luego se plantean modificaciones sobre el algoritmo, utilizando el módulo de GP
 
 Originalmente, las operaciones matemáticas necesarias para graficar objetos tridimensionales eran resueltas por el procesador principal (CPU). 
 A medida que las aplicaciones gráficas (principalmente juegos) fueron evolucionando, fue necesario delegar estas tareas a un procesador especializado para poder
-alcanzar rendimientos aceptables. De este modo surgieron los procesadores gráficos o GPU, presentes en cualquier placa de video actual. 
-Estos procesadores implementan una arquitectura orientada específicamente al tipo de operaciones que deben ejecutar. 
+alcanzar rendimientos aceptables. De este modo surgieron los procesadores gráficos o GPU, presentes en cualquier placa de video actual, los cuales implementan una arquitectura orientada específicamente al tipo de operaciones que deben ejecutar. 
 Dado que la mayoría consiste en la aplicación de una simple transformación sobre una gran cantidad de píxeles o vértices tridimensionales sin interdependencias de los resultados, 
 la arquitectura tiene, como objetivo principal, permitir una ejecución altamente paralelizada.
 Más adelante, con la aparición de la programabilidad de estos procesadores, se dio un gran paso evolutivo. 
@@ -162,7 +161,7 @@ Por otro lado, ATI se basó en un framework preexistente de programación parale
 En los ultimos años surgió en ambos fabricantes el interés en desarrollar soporte para un lenguaje orientado al cómputo intensivo conocido como OpenCL\cite{openclDoc}.
 
 
-De aquí en adelante los detalles de arquitectura y del modelo de programación se refieren a la plataforma CUDA ya que es la principal herramienta para el desarrollo de funcionalidades sobre gpu que utiliza OpenCV en el módulo gpu.
+De aquí en adelante los detalles de arquitectura y del modelo de programación se refieren a la plataforma CUDA ya que es la principal herramienta para el desarrollo de funcionalidades sobre GPU que utiliza OpenCV (además de ser la plataforma de mayor uso en cualquier rama de aplicaciones).
 
 
 \subsection{Modelo de programación}
@@ -173,26 +172,22 @@ De aquí en adelante los detalles de arquitectura y del modelo de programación 
 CUDA comprende principalmente tres componentes:
 \begin{enumerate}
 \item Un driver especializado, capaz de exponer los aspectos necesarios del hardware
-\item Una biblioteca o runtime que se comunica con este driver para presentar una interfaz de alto nivel al usuario
+\item Una biblioteca que se comunica con este driver para presentar una interfaz de alto nivel al usuario
 \item Un compilador especializado (nvcc) que genera tanto el código máquina para el GPU, como el código para CPU necesario para hacer de nexo entre ambos procesadores.
 \end{enumerate}
 
 El código a ejecutar en GPU se define siempre dentro de un método o kernel que puede ser invocado
 desde código C convencional. Estos métodos se escriben en un lenguaje C con extensiones sintácticas
 propias de CUDA. El compilador nvcc, al encontrar una invocación a un método de GPU (con la sintaxis
-apropiada), traduce este al código máquina correspondiente.
+apropiada), traduce éste al código máquina correspondiente.
 
 \subsubsection{Descripción}
-El modelo de programación asociado a estos procesadores es de tipo SIMD: Single Instruction,
-Multiple Data. Es decir, el procesamiento consiste en aplicar una misma operación a múltiples datos.
-De hecho, NVIDIA define este modelo como SIMT: Single Instruction, Multiple Threads, dado que en
-realidad una misma instrucción será ejecutada en paralelo por varios threads distintos (generalmente
-sobre datos también distintos).
+El modelo de programación asociado a estos procesadores es de tipo SIMD (Single Instruction Multiple Data), es decir, el procesamiento consiste en aplicar una misma operación a múltiples datos.
+De hecho, NVIDIA define este modelo como SIMT: Single Instruction Multiple Threads, dado que en
+realidad una misma instrucción será ejecutada en paralelo por varios threads distintos y, posiblemente, también sobre datos distintos.
 Desde el punto de vista del usuario, los kernels para GPU son ejecutados por múltiples threads,
-donde el paralelismo a nivel instrucción es resuelto por el procesador mismo. Para aprovechar las ca-
-racterísticas del hardware (que se detallarán más adelante), es necesario definir los threads en forma de
-grilla (uni o bi-dimensional), y agrupados en conjuntos de igual tamaño, llamados bloques. De este mo-
-do, cada thread tendrá asociado un identificador blockIdx, threadIdx, donde blockIdx corresponde al 
+donde el paralelismo a nivel instrucción es resuelto por el procesador mismo. Para aprovechar las características del hardware (que se detallarán más adelante), es necesario definir los threads en forma de
+grilla (uni o bi-dimensional), y agrupados en conjuntos de igual tamaño, llamados bloques. De este modo, cada thread tendrá asociado un par identificador, blockIdx-threadIdx, donde blockIdx corresponde al 
 índice del bloque al cual pertenece el thread, y threadIdx al número de thread dentro del bloque mismo (figura \ref{grilla}).
 
 
@@ -214,13 +209,13 @@ do, cada thread tendrá asociado un identificador blockIdx, threadIdx, donde blo
 
 CUDA extiende el lenguaje C permitiendo al programador definir funciones especiales, llamadas kernels, que, cuando se invocan, son ejecutadas N veces en paralelo sobre N threads CUDA diferentes. 
 Un kernel se define usando el especificador \_\_global\_\_ en la definición y el número de threads(junto con la agrupación en la grilla) se especifican para cada invocación del kernel usando
-una nueva sintaxis de configuracion de la ejecución (<<<...>>>) . 
+una nueva sintaxis de configuracion de la ejecución $(<<<...>>>)$ . 
 
 % A kernel is defined using the __global__ declaration specifier and the number of CUDA threads that execute that kernel for a given kernel call 
 % is specified using a new <<<...>>>execution configuration syntax (see C Language Extensions). Each thread that executes the kernel is given a unique thread ID that is accessible within the kernel through the built-in threadIdx variable.
 
-En el código .... se muestra un ejemplo de definición e invocación de un kernel, el cual suma los elementos de dos vectores A y B, almancenando el resultado en un vector C.
-\begin{lstlisting}[frame=bt,title={aa},caption={imgproc/src/opencl/cvtcolor.cl},
+En el código \ref{invocacionEjemplo} se muestra un ejemplo de definición e invocación de un kernel el cual suma los elementos de dos vectores A y B, almancenando el resultado en un vector C.
+\begin{lstlisting}[frame=bt,title={aa},caption={imgproc/src/opencl/cvtcolor.cl},label={invocacionEjemplo},
 columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\footnotesize,keywordstyle=\ttfamily\footnotesize,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
 // Kernel definition 
 __global__ void VecAdd(float* A, float* B, float* C) 
@@ -245,31 +240,20 @@ int main()
 
 \subsection{Arquitectura}
 
-El GPU comprende una serie de multiprocesadores (o stream processors), con capacidad de direc-
-cionar a un espacio de memoria global (la memoria de video o device memory). Cada multiprocesador
-tiene su propia memoria compartida (shared memory), que puede ser utilizada para intercomunicar los
-procesadores que lo conforman.
-La velocidad de la memoria compartida es comparable a la de un registro de procesador, mientras
-que los accesos a memoria global involucran cientos de ciclos. Dado que el mismo programa se aplica
-numerosas veces sobre distintos datos, no hay necesidad de un control de flujo optimizado (predicción
-de saltos, etc). No existe tampoco una caché asociada a la memoria global, por lo que se favorece el
-código con gran intensidad aritmética (en contraste con la cantidad de operaciones de memoria).
-En realidad, la memoria de video se encuentra segmentada. Además de la memoria global, existen
-otros segmentos tales como la memoria constante y la de textura (espacios solo de lectura, con cachés
-asociadas). Sin embargo, estos segmentos tienen restricciones de tamaño y direccionamiento con lo que
-no es posible prescindir de la memoria global para la mayoría de las transferencias.
+La GPU comprende una serie de multiprocesadores (o stream processors), con capacidad de direccionar a un espacio de memoria global (la memoria de video o device memory). 
+Cada multiprocesador tiene su propia memoria compartida (shared memory), que puede ser utilizada para intercomunicar los procesadores que lo conforman.
+La velocidad de la memoria compartida es comparable a la de un registro de procesador, mientras que los accesos a memoria global involucran cientos de ciclos. 
+Dado que el mismo programa se aplica numerosas veces sobre distintos datos, no hay necesidad de un control de flujo optimizado (predicción de saltos, etc). 
+No existe tampoco una caché asociada a la memoria global, por lo que se favorece el código con gran intensidad aritmética (en contraste con la cantidad de operaciones de memoria).
+En realidad, la memoria de video se encuentra segmentada: además de la memoria global, existen otros segmentos tales como la memoria constante y la de textura (espacios solo de lectura, con cachés
+asociadas). Sin embargo, estos segmentos tienen restricciones de tamaño y direccionamiento por lo que no es posible prescindir de la memoria global para la mayoría de las transferencias. 
+En la figura \ref{arquitectura} puede verse un esquema simplificado de la arquitectura aqui descrita.
 
 Cada thread será ejecutado por un procesador, con su propio instruction pointer y estado de registros.
-La asignación entre threads y procesadores está dada por la configuración de la llamada al método. Los
-bloques ejecutan siempre sobre un mismo multiprocesador, de modo de poder permitir la intercomu-
-nicación de los threads contenidos en él, a través del uso de la memoria compartida. Cada bloque es
-dividido por el scheduler en subconjuntos de dieciséis threads llamados warps (que, a su vez, se divide
-en dos half-warps). Cuando un warp comienza a ejecutar, el puntero a instrucción coincide para todos
-los threads del mismo. Mientras los threads no diverjan en su comportamiento (por ejemplo, condi-
-cionando la ejecución de una operación según el número de thread), el puntero avanza para todos los
-threads por igual. Los threads divergentes deben ser serializados, reduciendo así su performance. Al
-momento de volver a converger en su ejecución, el puntero vuelve a avanzar para todos los threads
-simultáneamente.
+La asignación entre threads y procesadores está dada por la configuración de la llamada al método. Los bloques ejecutan siempre sobre un mismo multiprocesador, de modo de poder permitir la intercomunicación de los threads contenidos en él, a través del uso de la memoria compartida. Cada bloque es
+dividido por el scheduler en subconjuntos de dieciséis threads llamados warps (que, a su vez, se divide en dos half-warps). 
+Cuando un warp comienza a ejecutarse, el puntero a instrucción coincide para todos los threads del mismo. Mientras los threads no diverjan en su comportamiento (por ejemplo, condicionando la ejecución de una operación según el número de thread), el puntero avanza para todos los threads por igual. 
+Los threads divergentes deben ser serializados, reduciendo así la performance global. Al momento de volver a converger en su ejecución, el puntero vuelve a avanzar para todos los threads simultáneamente.
 
 
 \begin{figure}
@@ -281,12 +265,10 @@ simultáneamente.
 
 
 Para arbitrar el acceso a la memoria compartida, se implementa un sistema de sincronización por barriers. 
-Cuando un procesador ejecuta una determinada instrucción de sincronización ( \_\_syncthreads() )
-para un thread dado, este último no continuará ejecutando hasta que todos los otros threads del bloque
+Cuando un procesador ejecuta una determinada instrucción de sincronización ( \_\_syncthreads() ) para un thread dado, este último no continuará ejecutando hasta que todos los otros threads del bloque
 hayan pasado por esta misma instrucción. La sincronización solo es posible a nivel bloque.
 Para lanzar una ejecución de código GPU, los datos sobre los cuales se operarán deben estar disponibles en la memoria de video (el procesador no puede operar sobre la memoria principal, o memoria
-del host). La transferencia entre memoria del host y la memoria de video puede hacerse mediante DMA
-(el usuario solo debe ejecutar un método similar a memcpy ).
+del host). La transferencia entre memoria del host y la memoria de video puede hacerse mediante DMA (el usuario solo debe ejecutar un método similar a memcpy ).
 
 
 
@@ -301,8 +283,8 @@ como podría ser aprovechado por la arquitectura, por un límite intrínseco del
 Algunos de los aspectos mas relevantes son:
 
 \subsubsection{Accesos a memoria}
-Dado que los accesos a memoria son considerablemente más costosos que las operaciones aritméticas, es necesario minimizar su utilización y, a la vez, hacerlo de forma eficiente. Para lograr esta efi-
-ciencia se pueden agrupar un conjunto de accesos a memoria en una sola transacción, esto ocurre automáticamente siempre que se cumplan ciertas caracterísicas en el patrón de acceso a memoria
+Dado que los accesos a memoria son considerablemente más costosos que las operaciones aritméticas, es necesario minimizar su utilización y, a la vez, hacerlo de forma eficiente. 
+Para lograr esta eficiencia se pueden agrupar un conjunto de accesos a memoria en una sola transacción, esto ocurre automáticamente siempre que se cumplan ciertas caracterísicas en el patrón de acceso a memoria.
 En general, los accesos deben ser a posiciones contiguas de la memoria pero los requisitos puntuales dependen de la versión de la arquitectura(compute capability). 
 % ( ver en detalle http://docs.nvidia.com/cuda/cuda-c-programming-guide/#device-memory-accesses)
 
@@ -318,22 +300,18 @@ En general, los accesos deben ser a posiciones contiguas de la memoria pero los 
 % (ver ejemplo 2.3), la segunda condición se cumple trivialmente al acceder a los mismos indexando con
 % el número de thread.
 
-Más allá del patrón de acceso a memoria, es posible esconder la latencia asociada a la memoria
-global si existen suficientes operaciones aritméticas independientes que pueden ser ejecutadas mientras
+Más allá del patrón de acceso a memoria, es posible esconder la latencia asociada a la memoria global si existen suficientes operaciones aritméticas independientes que pueden ser ejecutadas mientras
 se espera que se complete el acceso mismo.
 
 
 \subsubsection{Control de flujo}
 
 Además de las operaciones aritméticas y de memoria, hay que tener en cuenta a las instrucciones
-de control de flujo (es decir, los ifs, while, etc.). En esta arquitectura, un salto o branch puede ser parti-
-cularmente costoso en el caso en donde distintos threads de un mismo warp tomen caminos distintos
-(divergent branches, según la documentación). En estos casos el compilador debe serializar las instruc-
-ciones, lo cual puede tener un impacto importante en la performance.
-Para el caso de los ciclos for, el compilador es capaz de evaluar la posibilidad (o incluso, se lo puede
-forzar mediante una directiva especial) de hacer loop unrolling o desenrollamiento de ciclos. Al eliminar o
+de control de flujo (es decir, los ifs, while, etc.). En esta arquitectura, un salto o branch puede ser particularmente costoso en el caso en donde distintos threads de un mismo warp tomen caminos distintos
+(divergent branches, según la documentación). En estos casos el compilador debe serializar las instrucciones, lo cual puede tener un impacto importante en la performance.
+Para el caso de los ciclos for, el compilador es capaz de evaluar la posibilidad (o incluso, se lo puede forzar mediante una directiva especial) de hacer loop unrolling o desenrollamiento de ciclos. Al eliminar o
 reducir el impacto de la condición de fin de ciclo, es posible mejorar el rendimiento considerablemente.
-En cuanto a los if s, puede ser beneficioso reemplazar la ejecución condicional de ciertas operaciones
+En cuanto a los \textit{ifs}, puede ser beneficioso reemplazar la ejecución condicional de ciertas operaciones
 aritméticas con una ejecución incondicional, de modo que la contribución de los casos indeseados al
 resultado final sea neutra.
 
@@ -348,8 +326,7 @@ puedan ser escondidas mediante la ejecución de otro bloque. Para lograr esto es
 haya el doble de bloques que de multiprocesadores, sino que la cantidad de memoria compartida y de
 registros necesarios por bloque sea lo suficientemente baja.
 Además, el tamaño de los bloques debería ser elegido de modo que sea múltiplo del tamaño de un
-warp, para evitar warps incompletos. Para bloques de al menos 64 threads, el compilador es capaz de ma-
-nejar eficientemente los bancos de memoria de registros de modo de esconder las latencias asociadas a
+warp, para evitar warps incompletos. Para bloques de al menos 64 threads, el compilador es capaz de manejar eficientemente los bancos de memoria de registros de modo de esconder las latencias asociadas a
 dependencias lectura-escritura. En general, más threads por bloque permite un manejo más eficiente de
 los tiempos asignados a cada warp. El problema es que, a mayor tamaño de bloque habrá mas recursos
 utilizados por thread. El balance de estos factores en general puede ser obtenido por experimentación
@@ -364,10 +341,8 @@ dado que siempre se estará sujeto a las particularidades del código en cuesti�
 
 \subsubsection{Memoria local y registros}
 
-La memoria local corresponde al espacio asignado para las variables estáticas declaradas directa-
-mente en el código de un kernel. Dicho espacio es en realidad un segmento de la memoria global, con
-lo que la latencia asociada a su acceso es la misma. Sin embargo, dado que una variable declarada den-
-tro de un kernel (y que no será asignada a un registro, sino a memoria local) resulta en una dirección
+La memoria local corresponde al espacio asignado para las variables estáticas declaradas directamente en el código de un kernel. Dicho espacio es en realidad un segmento de la memoria global, con
+lo que la latencia asociada a su acceso es la misma. Sin embargo, dado que una variable declarada dentro de un kernel (y que no será asignada a un registro, sino a memoria local) resulta en una dirección
 de memoria distinta para cada thread, los requerimientos de acceso eficiente a memoria se cumplen
 automáticamente.
 
@@ -376,14 +351,11 @@ dependencias lectura-escritura que el compilador no pueda resolver, o que no pue
 mediante la ejecución de otros threads, esto puede no ser así. Sin embargo, si existen al menos 192
 threads activos por multiprocesador, estas latencias pueden ser ignoradas.
 La cantidad total de registros disponibles por multiprocesador es un recurso que se divide por cada
-thread, y se asigna durante la compilación del código correspondiente. Como fue mencionado, redu-
-ciendo el tamaño de los bloques es posible disminuir la cantidad de registros necesarios para la eje-
-cución de cierto kernel, en caso de que se esté excediendo el límite físico disponible por el hardware
+thread, y se asigna durante la compilación del código correspondiente. Como fue mencionado, reduciendo el tamaño de los bloques es posible disminuir la cantidad de registros necesarios para la ejecución de cierto kernel, en caso de que se esté excediendo el límite físico disponible por el hardware
 utilizado. Sin embargo, la eficiencia en el uso de registros estará sujeta a las decisiones realizadas por el
 compilador. Por esta razón, puede resultar beneficioso reescribir el kernel de alguna forma equivalente,
 con el objetivo de disminuir la cantidad de registros requeridos por thread y posiblemente incrementar
-el índice de occupancy. En general, mediante una directiva al compilador, es posible limitar explícita-
-mente la cantidad de registros que un kernel puede usar por thread. Sin embargo, el efecto de este límite
+el índice de occupancy. En general, mediante una directiva al compilador, es posible limitar explícitamente la cantidad de registros que un kernel puede usar por thread. Sin embargo, el efecto de este límite
 será el de alojar variables locales a la memoria local por lo que, en la mayoría de los casos, esto tendrá
 un impacto negativo en el rendimiento.
 
@@ -393,10 +365,8 @@ un impacto negativo en el rendimiento.
 En general, lo más importante es exponer correctamente el paralelismo del problema a resolver. Es
 posible que existan distintos algoritmos paralelizados, con distintas ventajas y desventajas. Compartir
 datos comunes a través de la memoria compartida suele ser deseable. Sin embargo, hay que tener en
-cuenta que en ciertas situaciones, debido al inmenso poder de cómputo de estos procesadores, recompu-
-tar datos en cada thread en vez de cargarlos de memoria puede dar mejores resultados de rendimiento.
-El paralelismo también puede ser explotado a nivel host, haciendo uso de streams. Un stream co-
-rresponde a un pipeline de kernels que se aplican en serie a un flujo de datos de entrada. Si se tienen
+cuenta que en ciertas situaciones, debido al inmenso poder de cómputo de estos procesadores, recomputar datos en cada thread en vez de cargarlos de memoria puede dar mejores resultados de rendimiento.
+El paralelismo también puede ser explotado a nivel host, haciendo uso de streams. Un stream corresponde a un pipeline de kernels que se aplican en serie a un flujo de datos de entrada. Si se tienen
 varios de estos pipelines, es posible hacer un uso más eficiente de los tiempos muertos intercalando la
 ejecución de los distintos kernels. Este esquema corresponde justamente a una arquitectura clásica tipo
 pipe \& filter.
@@ -1042,10 +1012,10 @@ latencia de la detección de los objetos, latencia de definición de estrategia 
 
 
 El algoritmo de control debería correr sobre un sistema de tiempo real duro: el procesamiento sería válido solo si se completan todas las etapas dentro de una cierta ventana de tiempo, normalmente hasta que se haga una nueva captura del campo, la cual invalida el estado descrito por la imagen anterior.
-El objetivo de esto es que todo el procesamiento se realice en un tiempo donde la imagen sobre la cual se estan tomando las decisiones sea representativa del estado actual del campo, en caso contrario la decisión puede ser incorrecta.
+El objetivo de esto es que todo el procesamiento se realice en una ventana de tiempo donde la imagen sobre la cual se están tomando las decisiones sea representativa del estado actual del campo, en caso contrario, la decisión puede ser incorrecta.
 
 La realidad continuamente cambiante del campo implica que, aún corriendo sobre un sistema de tiempo real duro, el tiempo que transcurre entre las distintas capturas puede llevar a tomar decisiones incorrectas.
-Por lo tanto se utilizan dos aproximaciones para adaptar el procesamiento lo mas posible a la realidad: 
+Por lo tanto, se utilizan dos aproximaciones para adaptar el procesamiento lo mas posible a la realidad: 
 \begin{itemize}
  \item Modificar los algoritmos de toma de decisiones para tener en cuenta que el sistema ha cambiado desde que se tiene la informacion, posiblemente usando información anterior.
  \item Disminuir lo mas posible la latencia en todos los pasos del procesamiento, de forma tal que la imagen sea lo más actual posible.
@@ -1068,8 +1038,8 @@ En este paso, se recibe una imagen actual del estado del campo y a partir de és
 
 
 Para realizar esto disponemos de una librería \cite{Jaureguiberry} que permite realizar el procesamiento de cuadros capturados por la cámara de video del campo de juego. 
-La función central de la libreria recibe por parámetro una imagen correspondiente al cuadro actual del estado del campo y detecta a partir de este los elementos de interés 
-(robots y pelota) devolviendo la información relevante. 
+La función central de la libreria(función \textit{process}) recibe por parámetro una imagen correspondiente al cuadro actual del estado del campo y detecta, a partir de éste, los elementos de interés 
+(robots y pelota) devolviendo la información relevante asociada a éstos. 
 
 
 % En esta sección se verán en forma general los pasos del procesamiento y se detallarán las funcionalidades optimizadas usando gpu.
@@ -1123,10 +1093,9 @@ En esta sección se evaluará la posibilidad de aplicar esta aproximación sobre
 
 
 % En las secciones anteriores se describio el codigo para la deteccion de imagenes en el cual se basa este trabajo. 
-El algoritmo sobre el cual trabajaremos permite evaluar objetivamente las ventajas de la optimización mediante gpu ya que es suficientemente simple para optimizar pero a la vez tiene la complejidad que brinda un 
-código real, en el cual parte de éste tiene la posibilidad de ser acelerado sobre la gpu y otra parte del código debe mantenerse en la CPU(porque no aporta una ventaja y/o no esta implementado),
-de esta forma existen distintas combinaciones de gpu/cpu que deberan ser evaluadas en cuanto a performance.
-
+El algoritmo sobre el cual trabajaremos permite evaluar objetivamente las ventajas de la optimización mediante gpu ya que es suficientemente simple para entender las posibles optimizaciones(funciones implementadas sobre GPU), pero a la vez tiene la complejidad que brinda un 
+código real en el cual parte de éste debe mantenerse en la CPU(porque no aporta una ventaja y/o no esta implementado), de esta forma existen distintas combinaciones de gpu/cpu que deberán ser evaluadas en cuanto a performance.
+En esta parte del trabajo, entonces, se hará incapié en esta evaluación de las posibilidades reales de optimización.
 
 
 
@@ -1159,8 +1128,8 @@ La funcion que se debe calcular es:
  
 \end{center}
 
-\indent Es decir, hay que realizar una ecuacion lineal sobre los valores de R, G y B de cada pixel. 
-La librería OpenCV optimiza la conversión a escala de grises utilizando el template para transformaciones unaria de imagenes explicado en la sección 2.2.2
+\indent Es decir, hay que resolver una ecuación lineal sobre los valores de R, G y B de cada pixel. 
+La librería OpenCV optimiza la conversión a escala de grises utilizando el template para transformaciones unarias de imágenes explicado en la sección 2.2.2
  
 Para utilizar esta aceleración, el paso de conversión se realiza de la siguiente forma:
 
@@ -1175,7 +1144,7 @@ Para utilizar esta aceleración, el paso de conversión se realiza de la siguien
 % cv::gpu::cvtColor(d_frame, d_gray0, CV_BGR2GRAY);
 % \end{lstlisting}
 
-Donde d\_frame es la imagen del estado actual del campo de juego(en espacio de colores RGB) almacenada sobre la gpu, d\_gray0 es una variable declarada gpu::GpuMat donde se almacenará el resultado(imagen en escala de grises),
+Donde d\_frame es la imagen del estado actual del campo de juego(en espacio de colores RGB) almacenada sobre la gpu, d\_gray0 es una variable declarada (de la clase gpu::GpuMat) donde se almacenará el resultado(imagen en escala de grises),
 y CV\_BGR2GRAY es un valor definido por la librería que indica que tipo de conversión queremos hacer.
 
 
@@ -1184,10 +1153,10 @@ y CV\_BGR2GRAY es un valor definido por la librería que indica que tipo de conv
 
 %  \textbf{ Diferencia absoluta:} 
  \subsubsection{Diferencia absoluta}
- En este paso lo que se hace es calcular la diferencia absoluta entre el valor de cada pixel del frame(en escala de grises) y el valor del pixel correspondiente del fondo(tambien convertido a escala de grises). 
+ En este paso lo que se hace es calcular la diferencia absoluta entre el valor de cada pixel del frame(en escala de grises) y el valor del pixel correspondiente del fondo(también convertido a escala de grises). 
  Este proceso involucra un cálculo aritmético simple entre valores para cada pixel y es totalmente independiente uno de otro, por lo que es fácilmente paralelizable. 
 %  Sin embargo, el costo de este paso (que crece con el tamaño de la imagen) no es tan significativo ya que solo se debe hacer 1 calculo simple para cada posicion de la matriz.
-OpenCV implementa esta función mediante una transformación binaria como se describió en la sección 2.2.2.
+OpenCV implementa esta función mediante una transformación binaria, tal como se describió en la sección 2.2.2.
 
 La función implementada sobre GPU se invoca mediante:
 
@@ -1208,7 +1177,7 @@ Donde d\_gray representa el frame en escala de grises
 %  \textbf{Conversion a valores binarios:} 
  \subsubsection{Conversión a valores binarios}
  Este paso también involucra una operación simple sobre cada pixel. 
- Implica puntualmente realizar la comparacion del valor en cada pixel con un valor de threshold y asignarle 1 o 0 según sea mayor, menor o igual que este.
+ Implica puntualmente realizar la comparación del valor en cada pixel con un valor de threshold y asignarle 1 o 0 según sea mayor, menor o igual que este.
  La función que hay que calcular es: 
  \begin{displaymath}
    resultado(x,y) = \left\{
@@ -1235,7 +1204,7 @@ Para ejecutar esta funcionalidad sobre GPU se debe invocar a la siguiente funci�
 %  \end{description}
  
 Para modificar la implementación existente sobre CPU se debe tener en cuenta que, además de reemplazar las operaciones por su versión en GPU, se deberán agregar explicitamente las declaraciones de variables y transferencias de datos necesarias entre las memorias.
-Por ej. si se quieren implementar los tres pasos sobre GPU quedaría:
+Por ejemplo, si se quieren implementar los tres pasos sobre GPU, el código quedaría:
 
 % \begin{lstlisting}[framexleftmargin=0.0em,columns=fullflexible,backgroundcolor=\color{LemonChiffon1},basicstyle=\small,keywordstyle=\ttfamily\small,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
 \begin{lstlisting}[caption={Ejemplo de método process sobre GPU},frame=bt,columns=fullflexible,numbers=left,backgroundcolor=\color{LemonChiffon1},basicstyle=\small,keywordstyle=\ttfamily\small,language=C++,stringstyle=\ttfamily,breaklines=true,xleftmargin=0.5em,xrightmargin=0pt,aboveskip=\bigskipamount,belowskip=\bigskipamount]
@@ -1248,7 +1217,7 @@ cv::gpu::absdiff(d_gray0, d_backgroundGray, d_gray1);
 cv::gpu::threshold(d_gray1, d_gray2, threshold, 255, CV_THRESH_BINARY);
 //traer resultado a memoria de CPU
 d_gray2.download(gray2);
-//...PROCESAwwMIENTO SOBRE CPU A PARTIR DE gray2
+//...PROCESAMIENTO SOBRE CPU A PARTIR DE gray2
 \end{lstlisting}
 
 
@@ -1286,10 +1255,13 @@ d_gray2.download(gray2);
  
 \subsection{Sistema de pruebas}
 % Aca explico el programa que se usa como prueba y el video, etc
-Para realizar las pruebas se reutilizo gran parte del programa cliente descrito en \cite[capitulo 4]{Jaureguiberry}.
+Para realizar las pruebas se reutilizó gran parte del programa cliente descrito en \cite[capítulo 4]{Jaureguiberry}.
 
 En términos generales, este programa recibe por parámetro un video que representa la entrada de la cámara de video central del partido de fútbol robot. 
-Dividiendo esta entrada en frames, realiza el procesamiento de cada uno de éstos hasta finalizar el video. El programa imprime información relevante sobre el tiempo de procesamiento que es utilizada luego para analizar la ejecución.
+Dividiendo la entrada en frames, realiza el procesamiento de cada uno de éstos hasta finalizar el video. El programa imprime información relevante sobre el tiempo de procesamiento que es utilizada luego para analizar la performance de la ejecución.
+El resultado que nos interesa y utilizaremos para evaluar la performance es el tiempo promedio para procesar un frame. 
+Este valor está calculado mediante el promedio directo entre todos los valores correspondientes al tiempo de procesamiento de cada frame. 
+Usando el mismo video de prueba y el mismo tiempo entre frames que en el la Ref \cite{Jaureguiberry}, se tiene un total de 249 frames sobre los cuales evaluar el promedio.
 
 % Una diferencia relevante es que, cuando se procesa el video de entrada, cada frame es cargado en la gpu y enviado como parámetro al módulo de procesamiento. 
 % Una vez que se hace toda la deteccion de blobs sobre gpu se descargan los resultados a la memoria de cpu
@@ -1302,14 +1274,15 @@ Dividiendo esta entrada en frames, realiza el procesamiento de cada uno de ésto
 % En primer lugar se evaluaron todos los pasos iniciales del procesamiento (sobre los cuales se trabajo en la aceleracion) de forma individual.
 
 % Para analizar las 
-Dado que al trabajar con GPUs se debe tener en cuenta la transferencia desde/hacia la memoria global del dispositivo, estos movimiento de datos se consideraron como un paso mas.
-Las pruebas se realizaron utilizando el mismo context de ejecucion detallado en la seccion del programa cliente. Se evaluaron los valores promedio de cada operacion detallada para todos los frames del video de prueba.
-De esta forma se obtuvieron los siguientes tiempos promedio:
+En primer lugar se evaluaron los tiempos de ejecución de cada operación del algoritmo detallada en 3.2.1 (operaciones implementadas en CPU y GPU).
+Dado que al trabajar con GPUs se debe tener en cuenta la transferencia hacia/desde la memoria global del dispositivo (al comienzo y al final del procesamiento respectivamente), estos movimientos de datos se consideraron como una operación mas.
+Las pruebas se realizaron utilizando el mismo contexto de ejecución detallado en la sección del programa cliente(solo se cambió la operación de interés). Se evaluó el tiempo de ejecución de \textbf{cada operación}, realizando luego un promedio para todos los frames del video de prueba.
+De esta forma se obtuvieron los siguientes tiempos:
 
 \begin{center}
     \begin{tabular}{ c | c | c | c }
     \hline
-    & GPU & CPU & Aceleracion\\ \hline
+    & GPU & CPU & Aceleración\\ \hline
     Transferencia frame(RGB) a GPU & 707 $\mu$s &  - \\ \hline
     Conversión a escala de grises & 220 $\mu$s & 590 $\mu$s & 2.7x \\ \hline
 %     Transferencia frame en escala de grises & 215 $\mu$s &  - \\ \hline
@@ -1322,32 +1295,34 @@ De esta forma se obtuvieron los siguientes tiempos promedio:
 \end{center}
 
 
-Como se ve en la tabla, algunas de las operaciones se alcancan valores de aceleracion muy altos, lo que hace pensar que el resultado general del tiempo de ejecucion seria favorable.
-Sin embargo, si hacemos la suma de estos valores (son solo valores promedio) de tiempo para el algoritmo sobre GPU y el mismo sobre CPU veremos que el total es mayor cuando intentamos derivar calculos en la GPU.
+Como se ve en la tabla, algunas de las operaciones alcanzan valores de aceleracion muy altos, lo que hace pensar que el resultado general del tiempo de ejecución global sería favorable.
+Sin embargo, si hacemos la suma de los tiempos de ejecución para todas las operaciones sobre CPU y lo comparamos con la suma de las operaciones sobre GPU(sumando también las transferencias correspondientes al principio y al final) veremos que el total es mayor cuando realizamos los cálculos en la GPU.
 
-Analizando un poco mas en detalle se ve que el primer paso de conversion no provee una gran mejora en el tiempo de ejecucion y sin embargo requiere que se transfiera a la gpu la imagen inicial
-que esta almacenada en un formato RGB (implica 3 colores...1 byte por cada color....bla bla). Si se hace este paso sobre la CPU , la transferencia de una imagen con la misma cantidad de pixeles pero en escala de grises
-tiene un tiempo promedio de 215 $\mu$s. Si bien en este caso la modificacion no alcanza para mejorar el tiempo correspondiente a hacer todo el calculo sobre cpu, 
-es util para ver que la forma de analizar la aceleracion mediante dispositivos GPU es haciendo una evaluacion de todos los tiempos asociados, tanto de computo como de transferencia.
-Esto no siempre es fácil, con un caso bastante simple como este donde tenemos 7 combinaciones que parecen ser razonables. A continuación se evaluan todas ellas en el contexto del algoritmo y
-se ven los tiempos resultantes de toda la ejecucion.
+Analizando un poco mas en detalle se ve que el primer paso de conversión no provee una gran mejora en el tiempo de ejecución y sin embargo requiere que se transfiera a la gpu la imagen inicial
+que esta almacenada en un formato RGB (este tipo de estructura implica 3 colores, con 1 byte por cada color). 
+Si en cambio hacemos este paso sobre la CPU, el tiempo de operación será mayor pero luego el resultado tendrá un menor tamaño(ya que será una imagen en escala de grises) y la transferencia necesaria para continuar con el procesamiento sobre GPU requerirá un menor tiempo.
+(en este caso en particular tiene un tiempo promedio de 215 $\mu$s). Si hacemos la suma con esta modificación se verá que, en este caso, no se lograr mejorar la performance global alcanzada utilizando exclusivamente la CPU. 
+Sin embargo, el tiempo global se mejora con respecto al calculado para GPU incialmente. Esto permite ver que la forma de analizar la posible aceleración mediante dispositivos GPU requiere una evaluación de todos los tiempos asociados, tanto de cómputo como de transferencia, y de las combinaciones posibles.
+Esto no siempre es fácil ya que el número de posibles combinaciones aumenta con la complejidad del algoritmo.
+Con un caso bastante simple como éste, tenemos 7 combinaciones que parecen ser razonables. 
+A continuación se evalúan todas ellas en el contexto del algoritmo y se ven los tiempos globales resultantes de la ejecución.
 
 
 
 
-A continuación se muestra los resultados de la ejecucion del procesamiento del caso de prueba completo sobre las distintas implementaciones posibles.
+% A continuación se muestra los resultados de la ejecución del procesamiento del caso de prueba completo sobre las distintas implementaciones posibles.
 % algoritmo global para las combinaciones mencionadas ....
 
 \begin{center}
 \makebox[\textwidth][c]{
     \begin{tabular}{ l | c }
     \hline
-    Ejecucion completa en CPU & 3026.08 $\mu$s\\ \hline
-    Haciendo la conversion a esc. grises en GPU & 3342.34 $\mu$s\\ \hline
-    Haciendo solo el calculo de la dif. absoluta en GPU & 3233.43 $\mu$s\\ \hline
+    Ejecución completa en CPU & 3026.08 $\mu$s\\ \hline
+    Haciendo la conversión a esc. grises en GPU & 3342.34 $\mu$s\\ \hline
+    Haciendo solo el cálculo de la dif. absoluta en GPU & 3233.43 $\mu$s\\ \hline
     Haciendo conversión a esc. de grises + dif. absoluta en GPU & 3332.71 $\mu$s\\ \hline
-    Haciendo solo el calculo de matriz binaria en GPU &  3318.82 $\mu$s\\ \hline
-    Haciendo el calculo de dif. absoluta + calc. de matriz binaria en GPU & 3276.13 $\mu$s\\ \hline
+    Haciendo solo el cálculo de matriz binaria en GPU &  3318.82 $\mu$s\\ \hline
+    Haciendo el cálculo de dif. absoluta + calc. de matriz binaria en GPU & 3276.13 $\mu$s\\ \hline
     Haciendo los 3 pasos sobre la GPU & 3315.95 $\mu$s\\ \hline
     \end{tabular}
     }
@@ -1357,20 +1332,39 @@ A continuación se muestra los resultados de la ejecucion del procesamiento del 
 
 
 
-Analizando de forma general estos valores se puede ver que los tiempos en los que se hace el calculo de conversion a escala de grises (que requieren subir el frame en RGB a la gpu) son los que tienen mayor
-diferencia con respecto al valor de CPU(1).
+Analizando de forma general estos valores se puede ver que los tiempos en los que se hace el calculo de conversión a escala de grises (que requieren subir el frame en RGB a la gpu) son los que tienen mayor
+diferencia con respecto al valor de CPU (fila 1).
 
 
 %  Se debe tener en cuenta que el tiempo de procesamiento y por lo tanto el tiempo de aceleracion logrado dependen del tamaño de la imagen?? 
 %  ya que una imagen mayor tendra mas posibilidades de paralelizacion si es que la arquitectura lo permite.
 
-Hasta acá hemos visto un ejemplo de como analizar una situacion en donde tenemos computo hibrido (cpu - gpu).
-Si bien el mejor analisis es haciendo las medidas correspondientes, como se menciono esto solo es posible para casos simples donde solo hay unas pocas operaciones en juego.
-En la realidad es mas comun hacer un analisis global de las variables que afectan positiva y negativamente la aceleracion global mediante gpu, principalmente se deben analizar el tamaño de las imagenes 
-sobre las cuales se aplican las operaciones y cuales son las operaciones que se aplican. Una imagen de mayor tamaño implica una mayor transferencia pero en muchos casos permite una mayor capacidad de paralelizacion, 
-principalmente en funciones que se aplican independientemente sobre todos los pixeles. En estos caso, dada la gran cantidad de unidades de procesamiento que tienen las GPUs se podrá obtener una mayor aceleracion.
+Hasta acá hemos visto un ejemplo de como analizar una situación en donde tenemos computo hibrido (cpu - gpu).
+Si bien el mejor análisis se logra haciendo las medidas correspondientes tal como se realizó, esto solo es posible para casos simples donde hay unas pocas operaciones en juego.
+En la realidad, es mas común hacer un análisis global de las variables que afectan positiva y negativamente la performance del algoritmo. Principalmente se deben analizar el tamaño de las imágenes sobre las cuales se aplican las operaciones y cuáles son las operaciones que se aplican. 
+Una imagen de mayor tamaño implica una mayor transferencia pero, en muchos casos, permite una mayor capacidad de paralelización, principalmente en funciones que se aplican de forma independiente sobre todos los pixeles(funciones altamente paralelizables). 
+En estos caso, dada la gran cantidad de unidades de procesamiento que tienen las GPUs se podrá obtener una mayor aceleración individual de la operación.
 
-Para mostrar esto se realizaron una serie de pruebas con un conjunto de imagenes de distintas 
+En la figura \ref{sizevstime} se ve el resultado de una serie de pruebas realizadas con el fin de demostrar la relación que se acaba de explicar entre el tamaño de la imagen, el tiempo de transferencia, la aceleración y el balance global que dará la performance final.
+Las pruebas realizadas consisten en aplicar 3 instrucciones sobre un set de imagenes con un tamaño que crece linealmente(el conjunto de imágenes se encuentra incluido en los archivos que acompañan el trabajo en el directorio img\_prueba).
+Las intrucciones son: transferencia de la imagen desde la memoria central a la memoria del dispositivo, conversión a escala de grises ejecutada sobre CPU, y conversión a escala de grises ejecutada sobre GPU.
+
+En primer lugar se puede ver como escala la transferencia de datos con el tamaño de la imagen. El tiempo de ejecución de este paso se mantiene prácticamente constante hasta alcanzar cierto valor limite donde empieza a aumentar considerablemente con el tamaño de la imagen que se está transfiriendo. 
+Esto es previsible teniendo en cuenta el ancho de banda de la transferencia hacia la memoria de la GPU.
+
+En segundo lugar se puede apreciar el aumento en el tiempo promedio de ejecución para la operación de conversión a escala de grises. El aumento en el tiempo es prácticamente lineal con el tamaño de la imagen a la cual se le aplica. 
+Esto también parece ser previsible dada la ejecución secuencial sobre CPU.
+
+Por último se puede ver como varía el tiempo promedio de ejecución para la conversión a escala de grises sobre GPU. 
+Como se explicó detalladamente en las secciones previas, esta operación es altamente paralelizable y por lo tanto puede explotar al máximo la gran capacidad de cómputo que provee la GPU.
+En la figura se puede ver como el tiempo de ejecución es, inicialmente, independiente del tamaño de la imagen. 
+Al superar cierto tamaño(número total de pixeles), el tiempo de ejecución comienza a aumentar muy levemente con el tamaño de la imagen, lo cual parece indicar que se ha superado el número máximo de operaciones independientes que se pueden realizar en un solo, propiedad asociada directamente a las caracterísicas del hardware.
+
+  
+También es útil analizar, al menos de forma aproximada, como se relaciona el valor del tiempo de transferencia con los tiempos correspndientes a la operación de conversión a escala de grises sobre CPU, el equivalente en GPU, y principalmente con respecto a la posible aceleración lograda.
+Como se ve, esta relación varía considerablemente con el tamaño de la imagen y, de acuerdo con éste, puede ocurrir que la aceleración lograda utilizando la GPU contrarreste el incremento en el tiempo de transferencia hacia la memoria del dispositivo, logrando así un balance positivo que se verá reflejado en un aumento de performance.
+  
+
 
 % \begin{figure}[!ht]
 % \begin{center}
@@ -1385,7 +1379,7 @@ Para mostrar esto se realizaron una serie de pruebas con un conjunto de imagenes
 \begin{figure}
   \centering
     \includegraphics[width=1.0\textwidth]{img/sizeVstime.png}
-  \caption{Relación entre el tiempo de transferencia y el tamaño(ancho) de la imagen}
+  \caption{Relación entre el tiempo de ejecución y el tamaño(ancho) de la imagen}
   \label{sizevstime}
 \end{figure}
 
@@ -1393,9 +1387,18 @@ Para mostrar esto se realizaron una serie de pruebas con un conjunto de imagenes
 \subsection{Hardware utilizado}
 
 
-AMD Opteron 6320  2.8GHz 
-64 Gb Memoria RAM
-NVIDIA Tesla M2090 
+CPU: AMD Opteron 6320  2.8GHz 
+
+Memoria RAM: 64Gb
+
+GPU: NVIDIA Tesla M2090 
+
+
+
+
+
+
+
 
 \chapter{Conclusiones y trabajo futuro}
 
@@ -1407,10 +1410,28 @@ En cuanto al desarrollo de software utilizando el modulo gpu.......
 Es dificil sacar una conclusion   real??  acerca de la mejora en la performance que se obtiene con el modulo gpu ya que, para esto, se deberia separar el overhead relacionado con la synchronization y la transferencia de datos.
 Obviamente se obtendran mejoras mas relevantes para imagenes mayores y cuando mayor cantidad de procesamiento se puede hacer teniendo los datos sobre la gpu.
 % TERMINO CON:
-Como principio general, como se menciona en  \cite{pulli2012real}  , los desarrolladores deberian probar diferentes combinaciones de procesamiento sobre CPU y GPU, medir los tiempos de procesamiento, y luego decidir cual es la combinacion que brinda la mejor performance
+Como principio general, como se menciona en  \cite{pulli2012real}  , los desarrolladores deberían probar diferentes combinaciones de procesamiento sobre CPU y GPU, medir los tiempos de procesamiento, y luego decidir cual es la combinación que brinda la mejor performance
+
 
 
 Desde el punto de vista aplicativo, los conocimientos adquiridos podrian aplicarse en diversos campos como el reconocimiento de patrones, seguridad, procesamiento de imagenes satelitales, etc.
+
+En cuanto a los resultados concretos de aceleración, sería interesante entonces hacer una análisis similar pero para algoritmos que utilicen patrones distintos de funciones, que vayan desde operaciones totalmente paralelas hasta un perfil totalmente secuencial.
+
+
+
+
+
+
+
+
+
+
+
+
+
+De esta forma se podría tener una mejor idea de la verdadera utilidad de utilizar la GPU en el contexto de un programa real de aplicación concreta. 
+En el caso analizado los resultados no son los deseados teniendo en cuenta las grandes capacidedes de cómputo que poseen las arquitecturas GPU.
 
 
 
